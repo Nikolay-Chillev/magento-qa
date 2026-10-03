@@ -1,0 +1,55 @@
+name: Finding
+description: A defect or risk found in the system under test (Magento or the environment)
+labels: ["finding"]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence, what is wrong and where.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - Critical - blocks purchase or exposes data
+        - Major - wrong behaviour with a workaround
+        - Minor - cosmetic or edge case
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Magento version, image tag/digest, browser if relevant.
+      placeholder: Magento 2.4.9, magento2-in-a-box php84 sample-data, Chromium
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Request/response, logs, screenshots or a link to the failing test.
