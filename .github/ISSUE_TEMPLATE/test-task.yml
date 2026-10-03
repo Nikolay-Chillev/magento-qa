@@ -1,0 +1,27 @@
+name: Test task
+description: New tests, framework work or environment changes
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why this is needed and which risk it covers.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Scenarios, components or files in scope.
+      placeholder: |
+        - Happy path: ...
+        - Negative: ...
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: How we know the task is finished.
+    validations:
+      required: true
