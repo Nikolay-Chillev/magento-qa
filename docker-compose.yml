@@ -7,12 +7,23 @@ services:
       - "8080:80"
     environment:
       - URL=http://localhost:8080/
+    volumes:
+      - ./docker/magento/custom-entrypoint.sh:/data/custom-entrypoint.sh:ro
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost/"]
+      # Ready means: test configuration applied and catalog search answering.
+      test:
+        - CMD-SHELL
+        - >-
+          test -f /tmp/qa-config-applied &&
+          curl -fsS -X POST -H 'Content-Type: application/json'
+          -d '{"query":"{ products(search: \"bag\", pageSize: 1) { total_count } }"}'
+          http://localhost/graphql | grep -q '"total_count":[1-9]'
       interval: 5s
       timeout: 10s
       retries: 60
       start_period: 30s
+    depends_on:
+      - mailpit
 
   mailpit:
     image: axllent/mailpit
