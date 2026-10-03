@@ -1,0 +1,20 @@
+services:
+  magento:
+    image: ghcr.io/controlaltdelete-nl/magento2-in-a-box/magento-project-community-edition:php84-fpm-magento2.4.9-sample-data
+    container_name: magento
+    ports:
+      - "8080:80"
+    environment:
+      - URL=http://localhost:8080/
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost/"]
+      interval: 5s
+      timeout: 10s
+      retries: 60
+      start_period: 30s
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    ports:
+      - "8025:8025"
