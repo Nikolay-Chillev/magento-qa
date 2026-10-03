@@ -33,6 +33,16 @@ def make_response(
     return response
 
 
+def test_redacted_response_hides_the_body() -> None:
+    response = make_response({"username": "admin", "password": "s3cret"}, request_headers={})
+    response._content = b'"eyJ-secret-token"'
+
+    text = format_exchange(response, redact_response=True)
+
+    assert "eyJ-secret-token" not in text
+    assert text.rstrip().endswith(MASK)
+
+
 def test_exchange_masks_credentials_in_headers_and_bodies() -> None:
     response = make_response(
         {"username": "a@b.c", "password": "s3cret"},
