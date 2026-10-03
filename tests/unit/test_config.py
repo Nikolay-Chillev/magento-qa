@@ -26,6 +26,15 @@ def test_environment_variables_override_defaults(monkeypatch: pytest.MonkeyPatch
     assert settings.request_timeout == 5
 
 
+def test_admin_password_is_not_exposed_in_repr(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("QA_ADMIN_PASSWORD", "s3cret")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.admin_password.get_secret_value() == "s3cret"
+    assert "s3cret" not in repr(settings)
+
+
 @pytest.mark.parametrize("timeout", ["0", "-1"])
 def test_non_positive_timeouts_are_rejected(monkeypatch: pytest.MonkeyPatch, timeout: str) -> None:
     monkeypatch.setenv("QA_WAIT_TIMEOUT", timeout)

@@ -30,12 +30,15 @@ class HttpClient:
         """Resolve ``path`` against the base URL; a leading slash is ignored."""
         return urljoin(self.base_url, path.lstrip("/"))
 
-    def request(self, method: str, path: str, **kwargs: Any) -> requests.Response:
+    def request(
+        self, method: str, path: str, *, redact_response: bool = False, **kwargs: Any
+    ) -> requests.Response:
+        """Send a request; ``redact_response`` keeps a secret body (e.g. a token) out of reports."""
         kwargs.setdefault("timeout", self.timeout)
         with allure.step(f"{method} /{path.lstrip('/')}"):
             response = self.session.request(method, self.url(path), **kwargs)
             allure.attach(
-                format_exchange(response),
+                format_exchange(response, redact_response=redact_response),
                 name=f"{method} {response.status_code}",
                 attachment_type=allure.attachment_type.TEXT,
             )
@@ -54,7 +57,7 @@ class HttpClient:
         return self.request("DELETE", path, **kwargs)
 
 
-def format_exchange(response: requests.Response) -> str:
+def format_exchange(response: requests.Response, *, redact_response: bool = False) -> str:
     """Render the request and response as readable text, with credentials masked."""
     request = response.request
     lines = [f"{request.method} {request.url}", *_format_headers(request.headers)]
@@ -65,7 +68,7 @@ def format_exchange(response: requests.Response) -> str:
         f"HTTP {response.status_code} {response.reason}",
         *_format_headers(response.headers),
         "",
-        _format_body(response.text),
+        MASK if redact_response else _format_body(response.text),
     ]
     return "\n".join(lines)
 

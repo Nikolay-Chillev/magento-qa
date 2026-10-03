@@ -50,8 +50,9 @@ jobs:
 
       - run: uv sync --locked
 
+      # Three workers: the store's PHP-FPM pool serves four requests at a time.
       - name: Run tests
-        run: uv run pytest --alluredir=allure-results
+        run: uv run pytest -n 3 --alluredir=allure-results
 
       - name: Upload Allure results
         if: ${{ !cancelled() }}
