@@ -44,6 +44,20 @@ The Magento image is pinned by digest, so every run uses exactly the same build.
 
 The container reports healthy only after these settings are active and catalog search returns results, so `docker compose up --wait` is enough to know the store is ready.
 
+## Development
+
+Requirements: Python 3.12 and [uv](https://docs.astral.sh/uv/).
+
+```bash
+uv sync                                  # create .venv with all dependencies
+uv run python -m pytest                  # run the tests
+uv run python -m pre_commit install      # lint, format and type-check on every commit
+```
+
+Settings default to the local Docker environment. Override them with `QA_*` environment variables or a `.env` file, see [`.env.example`](.env.example).
+
+Commands go through `python -m` so they also work where Windows Smart App Control blocks unsigned executables inside the virtual environment. For the same reason mypy is installed from source (`no-binary-package` in `pyproject.toml`).
+
 ## Roadmap
 
 - [x] Dockerised Magento + Mailpit environment
