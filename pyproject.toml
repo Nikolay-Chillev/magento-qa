@@ -1,0 +1,64 @@
+[project]
+name = "magento-qa"
+version = "0.1.0"
+description = "Test automation for a Magento 2 store: API, UI, email, accessibility and performance"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Nikolay Chillev" }]
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-settings>=2.15.0",
+    "pytest>=9.1.1",
+]
+
+[tool.uv]
+# Windows Smart App Control can block mypy's compiled extension. The pure-Python
+# build type-checks identically, only slower.
+no-binary-package = ["mypy"]
+
+[build-system]
+requires = ["uv_build>=0.12.22,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+markers = [
+    "smoke: fast checks that the environment and critical paths work",
+    "api: REST and GraphQL API tests",
+    "ui: browser tests",
+    "email: tests that assert on emails caught by Mailpit",
+    "a11y: accessibility checks",
+    "env_control: tests that run cron jobs or queue consumers inside the container",
+    "serial: tests that change global state and must not run in parallel",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # import order
+    "B",        # bugbear
+    "UP",       # pyupgrade
+    "SIM",      # simplify
+    "PT",       # pytest style
+    "RUF",      # ruff-specific
+]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src", "tests"]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "pre-commit>=4.6.2",
+    "ruff>=0.16.10",
+]
