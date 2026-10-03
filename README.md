@@ -50,7 +50,8 @@ Requirements: Python 3.12 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync                                  # create .venv with all dependencies
-uv run python -m pytest                  # run the tests
+uv run python -m pytest -m smoke         # check that the environment works
+uv run python -m pytest                  # run all tests
 uv run python -m pre_commit install      # lint, format and type-check on every commit
 ```
 
