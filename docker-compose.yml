@@ -1,17 +1,29 @@
 services:
   magento:
-    image: ghcr.io/controlaltdelete-nl/magento2-in-a-box/magento-project-community-edition:php84-fpm-magento2.4.9-sample-data
+    # Tag for readability, digest so every run uses exactly the same image.
+    image: ghcr.io/controlaltdelete-nl/magento2-in-a-box/magento-project-community-edition:php84-fpm-magento2.4.9-sample-data@sha256:d000f7fdc098c2ca5e4c3821a4207f3963017461d660e1976d1c99df23f0f4c3
     container_name: magento
     ports:
       - "8080:80"
     environment:
       - URL=http://localhost:8080/
+    volumes:
+      - ./docker/magento/custom-entrypoint.sh:/data/custom-entrypoint.sh:ro
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost/"]
+      # Ready means: test configuration applied and catalog search answering.
+      test:
+        - CMD-SHELL
+        - >-
+          test -f /tmp/qa-config-applied &&
+          curl -fsS -X POST -H 'Content-Type: application/json'
+          -d '{"query":"{ products(search: \"bag\", pageSize: 1) { total_count } }"}'
+          http://localhost/graphql | grep -q '"total_count":[1-9]'
       interval: 5s
       timeout: 10s
       retries: 60
       start_period: 30s
+    depends_on:
+      - mailpit
 
   mailpit:
     image: axllent/mailpit
