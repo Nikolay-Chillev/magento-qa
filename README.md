@@ -22,7 +22,7 @@ Requirements: Docker and a Bash shell (Git Bash on Windows).
 ./scripts/start.sh
 ```
 
-The script starts the containers, waits until Magento is healthy and routes Magento's outgoing email to Mailpit.
+The script starts the containers and waits until the store is ready for tests: the test configuration is applied and catalog search answers. A fresh start takes about 45 seconds.
 
 To reset the store to its initial sample data:
 
@@ -31,6 +31,18 @@ docker compose down
 ```
 
 All state (orders, customers, configuration) lives inside the container, so every run starts from a clean store.
+
+## Test environment
+
+The Magento image is pinned by digest, so every run uses exactly the same build. On each start, [`docker/magento/custom-entrypoint.sh`](docker/magento/custom-entrypoint.sh) applies a few settings that deviate from Magento defaults on purpose:
+
+| Setting | Default | Here | Why |
+|---|---|---|---|
+| `system/smtp/*` | sendmail | SMTP to `mailpit:1025` | Every outgoing email lands in Mailpit, where tests can assert on it |
+| `admin/security/password_lifetime` | 90 days | 0 (never expires) | The image's admin password would otherwise force a change 90 days after the image was built |
+| `customer/password/password_reset_protection_type` | By IP and email | By email | All test traffic comes from one IP, so IP-based throttling would allow one reset per 10 minutes for the whole suite |
+
+The container reports healthy only after these settings are active and catalog search returns results, so `docker compose up --wait` is enough to know the store is ready.
 
 ## Roadmap
 
