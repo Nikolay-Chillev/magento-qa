@@ -59,19 +59,27 @@ Settings default to the local Docker environment. Override them with `QA_*` envi
 
 Commands go through `python -m` so they also work where Windows Smart App Control blocks unsigned executables inside the virtual environment. For the same reason mypy is installed from source (`no-binary-package` in `pyproject.toml`).
 
+## Documentation
+
+- [Test strategy](docs/test-strategy.md): scope, risks and priorities, test levels, data, merge criteria
+- [Architecture decisions](docs/adr/): why Magento in a pinned image, why Python for API and UI, how the environment is configured
+- [Findings](docs/findings.md): defects and risks found in the store and its environment
+
 ## Roadmap
 
-- [x] Dockerised Magento + Mailpit environment
-- [ ] API tests (Pytest + Requests): guest checkout, cart, Bulgarian addresses
-- [ ] UI tests (Playwright for Python): critical customer journeys
-- [ ] Email assertions through the Mailpit API
-- [ ] CI on GitHub Actions with Allure report
-- [ ] Accessibility (axe-core), performance (k6), visual regression
+- [x] Dockerised Magento + Mailpit environment, pinned by digest
+- [x] CI on GitHub Actions: lint, type checks, tests in parallel, Allure results
+- [x] API: guest checkout with a Bulgarian address, order record and confirmation email
+- [ ] API: cart, coupons and promotions, all 28 oblasts, VAT
+- [ ] API: customer accounts and security, GraphQL
+- [ ] UI (Playwright for Python): checkout, catalog, accounts, mobile
+- [ ] Allure report on GitHub Pages, nightly cross-browser run
+- [ ] Accessibility (axe-core), performance smoke (k6)
 
 ## Notes
 
 - Windows reserves several TCP port ranges for Hyper-V. If a port is refused, list the reserved ranges with `netsh interface ipv4 show excludedportrange protocol=tcp` and pick another one. This project uses 8080 and 8025.
-- The image runs Magento in developer mode, so API errors include full stack traces. That is expected here, but it would be a security finding on a production store.
+- The image runs Magento in developer mode, so API errors include full stack traces; expected here, a finding on a production store ([#15](https://github.com/Nikolay-Chillev/magento-qa/issues/15)).
 
 ## License
 
