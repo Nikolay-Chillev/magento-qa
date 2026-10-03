@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import Field, HttpUrl
+from pydantic import Field, HttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     wait_timeout: float = Field(
         default=60.0, gt=0, description="Seconds to wait for an asynchronous outcome"
     )
+    # Public defaults of the magento2-in-a-box image; override them for any other store.
+    admin_username: str = "exampleuser"
+    admin_password: SecretStr = SecretStr("examplepassword123")
 
 
 @lru_cache
