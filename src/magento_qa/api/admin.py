@@ -1,5 +1,6 @@
 """Admin REST API: what the store back office sees."""
 
+from collections.abc import Mapping
 from typing import Any
 
 import requests
@@ -7,6 +8,8 @@ from pydantic import SecretStr
 
 from magento_qa.api.errors import raise_for_magento_error
 from magento_qa.api.http import HttpClient
+from magento_qa.models.cart import VariantOption
+from magento_qa.models.catalog import AttributeOption, ConfigurableAttribute, StockItem
 from magento_qa.models.order import Order
 
 
@@ -33,6 +36,43 @@ class AdminClient:
         response = self.request("GET", f"rest/V1/orders/{order_id}")
         raise_for_magento_error(response)
         return Order.model_validate(response.json())
+
+    def configurable_attributes(self, sku: str) -> list[ConfigurableAttribute]:
+        response = self.request("GET", f"rest/V1/configurable-products/{sku}/options/all")
+        raise_for_magento_error(response)
+        return [ConfigurableAttribute.model_validate(item) for item in response.json()]
+
+    def attribute_options(self, attribute_id: int) -> list[AttributeOption]:
+        response = self.request("GET", f"rest/V1/products/attributes/{attribute_id}/options")
+        raise_for_magento_error(response)
+        return [
+            AttributeOption.model_validate(option)
+            for option in response.json()
+            if option["value"] != ""  # the empty "please select" entry
+        ]
+
+    def stock_item(self, sku: str) -> StockItem:
+        response = self.request("GET", f"rest/V1/stockItems/{sku}")
+        raise_for_magento_error(response)
+        return StockItem.model_validate(response.json())
+
+    def variant_options(self, sku: str, choice: Mapping[str, str]) -> list[VariantOption]:
+        """Translate a variant chosen by labels, e.g. ``{"Color": "Black", "Size": "XS"}``,
+        into the attribute and option ids the cart API expects.
+
+        Ids differ between stores, so tests name variants the way a shopper sees them.
+        A value the product does not offer is still resolved, so tests can try to buy it.
+        """
+        options = []
+        for attribute in self.configurable_attributes(sku):
+            label = choice[attribute.label]
+            values = {o.label: int(o.value) for o in self.attribute_options(attribute.attribute_id)}
+            if label not in values:
+                raise KeyError(f"{attribute.label} has no option {label!r}")
+            options.append(
+                VariantOption(option_id=attribute.attribute_id, option_value=values[label])
+            )
+        return options
 
     def _auth_header(self) -> dict[str, str]:
         if self._token is None:
