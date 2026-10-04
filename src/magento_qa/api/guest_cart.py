@@ -71,6 +71,14 @@ class GuestCartClient:
         raise_for_magento_error(response)
         return [CartItem.model_validate(item) for item in response.json()]
 
+    def apply_coupon(self, cart_id: str, code: str) -> None:
+        response = self.http.put(f"rest/V1/guest-carts/{cart_id}/coupons/{code}")
+        raise_for_magento_error(response)
+
+    def remove_coupon(self, cart_id: str) -> None:
+        response = self.http.delete(f"rest/V1/guest-carts/{cart_id}/coupons")
+        raise_for_magento_error(response)
+
     def totals(self, cart_id: str) -> Totals:
         response = self.http.get(f"rest/V1/guest-carts/{cart_id}/totals")
         raise_for_magento_error(response)

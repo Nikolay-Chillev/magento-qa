@@ -26,12 +26,12 @@ Each risk gets a priority from its business impact. Priority decides the order o
 | Risk | Impact if it happens | Priority | Covered by |
 |---|---|---|---|
 | A customer cannot complete a purchase | Direct loss of revenue | **P1** | API: guest checkout ✅ · UI: guest checkout and form validation ✅ |
-| Totals are wrong (price, shipping, tax, discounts) | Revenue loss or overcharged customers, legal exposure | **P1** | API: checkout and cart totals ✅ · coupons and promotions (planned) |
+| Totals are wrong (price, shipping, tax, discounts) | Revenue loss or overcharged customers, legal exposure | **P1** | API: checkout, cart and promotion totals ✅ |
 | Cart accepts what it should not (missing variant, quantity beyond stock or invalid) | Unfulfillable orders, wrong charges | **P1** | API: variants and quantity rules ✅ ([#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) open) |
 | The order is not recorded, or recorded with wrong data | Order cannot be fulfilled | **P1** | API: order in the back office ✅ |
 | The customer gets no confirmation | Support calls, lost trust | **P1** | Email: order confirmation ✅ |
 | Bulgarian addresses are rejected or stored wrongly | Lost local customers, failed deliveries | **P2** | API: address and oblast ✅ · all 28 oblasts (planned) |
-| Coupons and promotions misapplied | Margin loss or angry customers | **P2** | API (planned) |
+| Coupons and promotions misapplied | Margin loss or angry customers | **P2** | API: coupon codes, end dates, automatic promotions ✅ ([#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34), [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) open) · usage limits and UI (planned) |
 | Account security: lockout, password reset, access to other customers' data | Account takeover, data leak | **P2** | API + UI (planned) |
 | Search and category browsing broken | Customers cannot find products | **P2** | UI: home page → product page smoke ✅ · search and filters (planned) |
 | Accessibility barriers | Excluded customers; non-compliance with the European Accessibility Act | **P3** | axe checks (planned) |
