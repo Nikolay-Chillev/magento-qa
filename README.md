@@ -59,7 +59,10 @@ uv sync                                  # create .venv with all dependencies
 uv run python -m pytest -m smoke         # check that the environment works
 uv run python -m pytest                  # run all tests
 uv run python -m pre_commit install      # lint, format and type-check on every commit
+uv run python -m playwright install chromium   # browser for the UI tests
 ```
+
+UI tests run headless in Chromium. Add `--headed --slowmo 300` to watch them, or `--browser firefox` / `--browser webkit` for other engines. When a UI test fails, its Allure result carries a full-page screenshot and a Playwright trace (`playwright-trace.zip`); open the trace with `uv run python -m playwright show-trace <file>` or at [trace.playwright.dev](https://trace.playwright.dev) to step through every action with DOM snapshots and network calls.
 
 Settings default to the local Docker environment. Override them with `QA_*` environment variables or a `.env` file, see [`.env.example`](.env.example).
 
@@ -78,7 +81,8 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] API: guest checkout with a Bulgarian address, order record and confirmation email
 - [ ] API: cart, coupons and promotions, all 28 oblasts, VAT
 - [ ] API: customer accounts and security, GraphQL
-- [ ] UI (Playwright for Python): checkout, catalog, accounts, mobile
+- [x] UI foundation (Playwright for Python): page objects, cart seeding, screenshot and trace on failure
+- [ ] UI journeys: checkout, catalog, accounts, mobile
 - [x] Allure report on GitHub Pages, with history across runs
 - [ ] Nightly cross-browser run
 - [ ] Accessibility (axe-core), performance smoke (k6)
