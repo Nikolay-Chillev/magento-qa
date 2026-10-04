@@ -2,7 +2,7 @@
 
 Defects and risks found while testing the store and its environment. Each finding is a GitHub issue labelled [`finding`](https://github.com/Nikolay-Chillev/magento-qa/issues?q=label%3Afinding) with steps to reproduce; this page is the summary.
 
-**Source** separates what Magento itself does (*product*) from how this Docker image is configured (*environment*) and from the sample catalog (*test data*). Environment findings would be configuration tickets on a real project, not Magento bugs, but they are exactly what a pre-production review should catch.
+**Source** separates what Magento itself does (*product*) from how this Docker image is configured (*environment*), from how the store is set up (*configuration*) and from the sample catalog (*test data*). Environment findings would be configuration tickets on a real project, not Magento bugs, but they are exactly what a pre-production review should catch.
 
 | # | Finding | Severity | Source | Status |
 |---|---|---|---|---|
@@ -14,6 +14,8 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#19](https://github.com/Nikolay-Chillev/magento-qa/issues/19) | Missing oblast is only rejected when the order is placed | Minor | Product | Open, covered by a test |
 | [#20](https://github.com/Nikolay-Chillev/magento-qa/issues/20) | Product names in API responses contain HTML entities | Minor | Test data | Open |
 | [#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) | REST cart API turns zero and negative quantities into 1 | Major | Product | Open, covered by `xfail` tests |
+| [#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34) | Free-shipping promotion is applied but Flat Rate still charges shipping | Major | Product | Open, covered by an `xfail` test |
+| [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) | "Buy 3 tees, get the 4th free" gives away any product, not only tees | Major | Configuration | Open, covered by an `xfail` test |
 
 ## Details
 
@@ -48,6 +50,14 @@ For a Bulgarian address without `region_id`, the shipping-information step succe
 ### #29 REST cart API turns zero and negative quantities into 1
 
 Adding an item with `qty` 0 or negative, or updating an item to 0, answers 200 and leaves one unit in the cart. GraphQL rejects the same input with *The product quantity should be greater than 0*. **Root cause:** `Magento\Quote\Model\Quote\Item::_prepareQty()` replaces any non-positive quantity with 1 while the REST payload is deserialised, so the `qty <= 0` check in `CartItemPersister` never sees the original value. A headless client that sends 0 to remove an item keeps one unit instead. The expected behaviour is pinned by strict `xfail` tests in `tests/api/test_cart.py`: they fail today and will turn red as soon as Magento fixes it, prompting the marker's removal.
+
+### #34 Free-shipping promotion is applied but Flat Rate still charges shipping
+
+*Spend $50 or more - shipping is free!* is applied to a €68 cart (`applied_rule_ids = 2`, `free_shipping = 1` on the shipping address), yet Flat Rate charges €10. **Root cause:** the rule grants free shipping *for the shipment*, which flags the address; `Flatrate::getFreeBoxesCount()` only counts items whose own free-shipping flag is set, while `Tablerate` also reads the address flag. Flat Rate is the only method for Bulgaria, so the advertised promotion never reaches Bulgarian shoppers.
+
+### #35 "Buy 3 tees, get the 4th free" gives away any product, not only tees
+
+The rule's condition requires a tee in the cart, but its action applies to all items: one €22 tee plus four €34 bags gets a bag for free. Four bags without a tee get nothing, which confirms the tee only unlocks the discount. **Recommendation:** restrict the action ("Apply to") to the Tees categories, as the rule's name promises. A configuration mistake rather than a Magento defect, and a classic way promotions leak revenue.
 
 ## To investigate
 
