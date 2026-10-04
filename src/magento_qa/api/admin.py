@@ -88,13 +88,31 @@ class AdminClient:
         response = self.request("POST", "rest/all/V1/salesRules", json={"rule": rule_body})
         raise_for_magento_error(response)
         rule = CartRule.model_validate(response.json())
+        try:
+            response = self.request(
+                "POST",
+                "rest/all/V1/coupons",
+                json={"coupon": {"rule_id": rule.rule_id, "code": code, "is_primary": True}},
+            )
+            raise_for_magento_error(response)
+            return rule, Coupon.model_validate(response.json())
+        except Exception:
+            # The caller never learns the rule id, so clean up here or it leaks.
+            self.delete_cart_rule(rule.rule_id)
+            raise
+
+    def coupon(self, code: str) -> Coupon:
+        criteria = "searchCriteria[filterGroups][0][filters][0]"
         response = self.request(
-            "POST",
-            "rest/all/V1/coupons",
-            json={"coupon": {"rule_id": rule.rule_id, "code": code, "is_primary": True}},
+            "GET",
+            "rest/all/V1/coupons/search",
+            params={f"{criteria}[field]": "code", f"{criteria}[value]": code},
         )
         raise_for_magento_error(response)
-        return rule, Coupon.model_validate(response.json())
+        items = response.json()["items"]
+        if len(items) != 1:
+            raise LookupError(f"Expected one coupon {code!r}, found {len(items)}")
+        return Coupon.model_validate(items[0])
 
     def delete_cart_rule(self, rule_id: int) -> None:
         """Delete a rule together with its coupons."""
