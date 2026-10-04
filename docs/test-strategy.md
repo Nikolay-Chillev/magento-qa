@@ -30,7 +30,8 @@ Each risk gets a priority from its business impact. Priority decides the order o
 | Cart accepts what it should not (missing variant, quantity beyond stock or invalid) | Unfulfillable orders, wrong charges | **P1** | API: variants and quantity rules ✅ ([#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) open) |
 | The order is not recorded, or recorded with wrong data | Order cannot be fulfilled | **P1** | API: order in the back office ✅ |
 | The customer gets no confirmation | Support calls, lost trust | **P1** | Email: order confirmation ✅ |
-| Bulgarian addresses are rejected or stored wrongly | Lost local customers, failed deliveries | **P2** | API: address and oblast ✅ · all 28 oblasts (planned) |
+| Bulgarian addresses are rejected or stored wrongly | Lost local customers, failed deliveries | **P2** | API: orders to all 28 oblasts, required address fields ✅ · UI: oblast dropdown ✅ |
+| VAT missing or wrong | Under- or over-charged customers, tax compliance | **P1** | API: 20% Bulgarian VAT, no VAT outside Bulgaria, catalog tax-class audit ✅ ([#39](https://github.com/Nikolay-Chillev/magento-qa/issues/39) open) |
 | Coupons and promotions misapplied | Margin loss or angry customers | **P2** | API: coupon codes, end dates, automatic promotions ✅ ([#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34), [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) open) · coupon usage limits ✅ · UI: coupon in the cart ✅ |
 | Account security: lockout, password reset, access to other customers' data | Account takeover, data leak | **P2** | API + UI (planned) |
 | Search and category browsing broken | Customers cannot find products | **P2** | UI: home page → product page smoke ✅ · search and filters (planned) |

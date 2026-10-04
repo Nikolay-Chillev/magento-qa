@@ -16,6 +16,7 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) | REST cart API turns zero and negative quantities into 1 | Major | Product | Open, covered by `xfail` tests |
 | [#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34) | Free-shipping promotion is applied but Flat Rate still charges shipping | Major | Product | Open, covered by an `xfail` test |
 | [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) | "Buy 3 tees, get the 4th free" gives away any product, not only tees | Major | Configuration | Open, covered by an `xfail` test |
+| [#39](https://github.com/Nikolay-Chillev/magento-qa/issues/39) | Five products have no tax class and are sold without VAT | Major | Configuration | Open, covered by an `xfail` audit |
 
 ## Details
 
@@ -58,6 +59,10 @@ Adding an item with `qty` 0 or negative, or updating an item to 0, answers 200 a
 ### #35 "Buy 3 tees, get the 4th free" gives away any product, not only tees
 
 The rule's condition requires a tee in the cart, but its action applies to all items: one €22 tee plus four €34 bags gets a bag for free. Four bags without a tee get nothing, which confirms the tee only unlocks the discount. **Recommendation:** restrict the action ("Apply to") to the Tees categories, as the rule's name promises. A configuration mistake rather than a Magento defect, and a classic way promotions leak revenue.
+
+### #39 Five products have no tax class and are sold without VAT
+
+With the 20% Bulgarian VAT rule in place, a Radiant Tee is charged €4.40 VAT on €22, but a Joust Duffle Bag is charged nothing: `24-MB01`, `24-UG06`, `24-WG081-gray`, `24-WG085` and `24-WG085_Group` have no tax class at all, so no tax rule can match them. On a live store this under-collects VAT. Found through the admin API (`tax_class_id` is null) and pinned by a catalog audit test; the VAT tests use a taxable product.
 
 ## To investigate
 
