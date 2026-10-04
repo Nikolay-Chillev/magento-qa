@@ -71,6 +71,7 @@ class Totals(BaseModel):
     quote_currency_code: str
     items_qty: Decimal | None = None
     items: list[TotalsItem] = []
+    coupon_code: str | None = None
 
 
 class PaymentDetails(BaseModel):
