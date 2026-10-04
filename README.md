@@ -82,7 +82,8 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [ ] API: cart, coupons and promotions, all 28 oblasts, VAT
 - [ ] API: customer accounts and security, GraphQL
 - [x] UI foundation (Playwright for Python): page objects, cart seeding, screenshot and trace on failure
-- [ ] UI journeys: checkout, catalog, accounts, mobile
+- [x] UI: guest checkout with a Bulgarian address, verified in the back office and by email
+- [ ] UI journeys: catalog, accounts, coupons, mobile
 - [x] Allure report on GitHub Pages, with history across runs
 - [ ] Nightly cross-browser run
 - [ ] Accessibility (axe-core), performance smoke (k6)

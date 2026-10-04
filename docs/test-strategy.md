@@ -25,7 +25,7 @@ Each risk gets a priority from its business impact. Priority decides the order o
 
 | Risk | Impact if it happens | Priority | Covered by |
 |---|---|---|---|
-| A customer cannot complete a purchase | Direct loss of revenue | **P1** | API: guest checkout ✅ · UI: checkout (planned) |
+| A customer cannot complete a purchase | Direct loss of revenue | **P1** | API: guest checkout ✅ · UI: guest checkout and form validation ✅ |
 | Totals are wrong (price, shipping, tax, discounts) | Revenue loss or overcharged customers, legal exposure | **P1** | API: checkout and cart totals ✅ · coupons and promotions (planned) |
 | Cart accepts what it should not (missing variant, quantity beyond stock or invalid) | Unfulfillable orders, wrong charges | **P1** | API: variants and quantity rules ✅ ([#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) open) |
 | The order is not recorded, or recorded with wrong data | Order cannot be fulfilled | **P1** | API: order in the back office ✅ |

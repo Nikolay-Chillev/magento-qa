@@ -37,6 +37,24 @@ class AdminClient:
         raise_for_magento_error(response)
         return Order.model_validate(response.json())
 
+    def find_order(self, increment_id: str) -> Order:
+        """The order a shopper sees as e.g. ``000000067``."""
+        criteria = "searchCriteria[filterGroups][0][filters][0]"
+        response = self.request(
+            "GET",
+            "rest/V1/orders",
+            params={
+                f"{criteria}[field]": "increment_id",
+                f"{criteria}[value]": increment_id,
+                f"{criteria}[conditionType]": "eq",
+            },
+        )
+        raise_for_magento_error(response)
+        items = response.json()["items"]
+        if len(items) != 1:
+            raise LookupError(f"Expected one order {increment_id}, found {len(items)}")
+        return Order.model_validate(items[0])
+
     def configurable_attributes(self, sku: str) -> list[ConfigurableAttribute]:
         response = self.request("GET", f"rest/V1/configurable-products/{sku}/options/all")
         raise_for_magento_error(response)
