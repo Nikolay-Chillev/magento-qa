@@ -33,7 +33,7 @@ Each risk gets a priority from its business impact. Priority decides the order o
 | Bulgarian addresses are rejected or stored wrongly | Lost local customers, failed deliveries | **P2** | API: address and oblast ✅ · all 28 oblasts (planned) |
 | Coupons and promotions misapplied | Margin loss or angry customers | **P2** | API (planned) |
 | Account security: lockout, password reset, access to other customers' data | Account takeover, data leak | **P2** | API + UI (planned) |
-| Search and category browsing broken | Customers cannot find products | **P2** | GraphQL + UI (planned) |
+| Search and category browsing broken | Customers cannot find products | **P2** | UI: home page → product page smoke ✅ · search and filters (planned) |
 | Accessibility barriers | Excluded customers; non-compliance with the European Accessibility Act | **P3** | axe checks (planned) |
 | Slow pages or API under load | Lower conversion | **P3** | k6 smoke (planned) |
 
