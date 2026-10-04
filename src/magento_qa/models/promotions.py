@@ -17,3 +17,4 @@ class Coupon(BaseModel):
     coupon_id: int
     rule_id: int
     code: str
+    times_used: int | None = None  # null on a coupon that was just created
