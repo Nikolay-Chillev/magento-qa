@@ -74,3 +74,46 @@ jobs:
           name: compose-logs
           path: compose.log
           retention-days: 14
+
+  report:
+    name: Publish Allure report
+    needs: test
+    # Publish failing runs too: that is when the report matters most.
+    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: allure-results
+          path: allure-results
+
+      - id: pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Restore report history
+        run: |
+          mkdir -p allure-history
+          curl -fsSL "${{ steps.pages.outputs.base_url }}/history.jsonl" -o allure-history/history.jsonl \
+            || echo "No published history yet, starting a new one"
+
+      - name: Generate report
+        run: |
+          npx --yes allure@3.20.0 generate allure-results --config allurerc.mjs --history-limit 30
+          cp allure-history/history.jsonl allure-report/history.jsonl
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: allure-report
+
+      - id: deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
