@@ -119,6 +119,22 @@ class AdminClient:
         response = self.request("DELETE", f"rest/all/V1/salesRules/{rule_id}")
         raise_for_magento_error(response)
 
+    def skus_without_tax_class(self) -> list[str]:
+        """Products sold without any tax class, so no tax rule can ever apply to them."""
+        criteria = "searchCriteria[filterGroups][0][filters][0]"
+        response = self.request(
+            "GET",
+            "rest/all/V1/products",
+            params={
+                f"{criteria}[field]": "tax_class_id",
+                f"{criteria}[conditionType]": "null",
+                "searchCriteria[pageSize]": 1000,
+                "fields": "items[sku]",
+            },
+        )
+        raise_for_magento_error(response)
+        return sorted(item["sku"] for item in response.json().get("items") or [])
+
     def configurable_attributes(self, sku: str) -> list[ConfigurableAttribute]:
         response = self.request("GET", f"rest/V1/configurable-products/{sku}/options/all")
         raise_for_magento_error(response)
