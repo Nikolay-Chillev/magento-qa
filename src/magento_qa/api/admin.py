@@ -1,6 +1,7 @@
 """Admin REST API: what the store back office sees."""
 
 from collections.abc import Mapping
+from datetime import date
 from typing import Any
 
 import requests
@@ -11,6 +12,7 @@ from magento_qa.api.http import HttpClient
 from magento_qa.models.cart import VariantOption
 from magento_qa.models.catalog import AttributeOption, ConfigurableAttribute, StockItem
 from magento_qa.models.order import Order
+from magento_qa.models.promotions import CartRule, Coupon
 
 
 class AdminClient:
@@ -54,6 +56,50 @@ class AdminClient:
         if len(items) != 1:
             raise LookupError(f"Expected one order {increment_id}, found {len(items)}")
         return Order.model_validate(items[0])
+
+    def create_coupon_rule(
+        self,
+        name: str,
+        *,
+        code: str,
+        percent_off: float,
+        to_date: date | None = None,
+        uses_per_coupon: int = 0,
+    ) -> tuple[CartRule, Coupon]:
+        """A percentage-off rule for all shoppers, triggered by one coupon code.
+
+        It only affects carts that apply ``code``, so tests running in parallel are
+        not disturbed. Delete it with ``delete_cart_rule`` when the test is done.
+        """
+        rule_body: dict[str, Any] = {
+            "name": name,
+            "website_ids": [1],
+            "customer_group_ids": [0, 1, 2, 3],
+            "is_active": True,
+            "coupon_type": "SPECIFIC_COUPON",
+            "simple_action": "by_percent",
+            "discount_amount": percent_off,
+            "uses_per_coupon": uses_per_coupon,
+            "uses_per_customer": 0,
+            "stop_rules_processing": False,
+        }
+        if to_date is not None:
+            rule_body["to_date"] = to_date.isoformat()
+        response = self.request("POST", "rest/all/V1/salesRules", json={"rule": rule_body})
+        raise_for_magento_error(response)
+        rule = CartRule.model_validate(response.json())
+        response = self.request(
+            "POST",
+            "rest/all/V1/coupons",
+            json={"coupon": {"rule_id": rule.rule_id, "code": code, "is_primary": True}},
+        )
+        raise_for_magento_error(response)
+        return rule, Coupon.model_validate(response.json())
+
+    def delete_cart_rule(self, rule_id: int) -> None:
+        """Delete a rule together with its coupons."""
+        response = self.request("DELETE", f"rest/all/V1/salesRules/{rule_id}")
+        raise_for_magento_error(response)
 
     def configurable_attributes(self, sku: str) -> list[ConfigurableAttribute]:
         response = self.request("GET", f"rest/V1/configurable-products/{sku}/options/all")
