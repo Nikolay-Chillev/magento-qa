@@ -8,10 +8,10 @@ import requests
 from magento_qa.api.http import MASK, HttpClient, format_exchange
 
 
-@pytest.mark.parametrize("base_url", ["http://shop.test", "http://shop.test/"])
+@pytest.mark.parametrize("store_url", ["http://shop.test", "http://shop.test/"])
 @pytest.mark.parametrize("path", ["rest/V1/carts", "/rest/V1/carts"])
-def test_paths_resolve_against_the_base_url(base_url: str, path: str) -> None:
-    client = HttpClient(base_url, timeout=1)
+def test_paths_resolve_against_the_base_url(store_url: str, path: str) -> None:
+    client = HttpClient(store_url, timeout=1)
 
     assert client.url(path) == "http://shop.test/rest/V1/carts"
 
