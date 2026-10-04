@@ -37,6 +37,27 @@ UPDATE cataloginventory_stock_status ss
   JOIN catalog_product_entity e ON e.entity_id = ss.product_id
   SET ss.qty = 5 WHERE e.sku = '$LOW_STOCK_SKU';"
 
+# Bulgarian VAT: 20% on taxable goods for every customer group. Catalog prices stay
+# net (Magento's default), so VAT is added at checkout. Idempotent across restarts.
+mysql -u root magento -e "
+INSERT INTO tax_calculation_rate (tax_country_id, tax_region_id, tax_postcode, code, rate)
+  SELECT 'BG', 0, '*', 'BG-VAT-20', 20.0000 FROM DUAL
+  WHERE NOT EXISTS (SELECT 1 FROM tax_calculation_rate WHERE code = 'BG-VAT-20');
+INSERT INTO tax_calculation_rule (code, priority, position, calculate_subtotal)
+  SELECT 'Bulgarian VAT', 0, 0, 0 FROM DUAL
+  WHERE NOT EXISTS (SELECT 1 FROM tax_calculation_rule WHERE code = 'Bulgarian VAT');
+INSERT INTO tax_calculation
+    (tax_calculation_rate_id, tax_calculation_rule_id, customer_tax_class_id, product_tax_class_id)
+  SELECT rate.tax_calculation_rate_id, rule.tax_calculation_rule_id, customer.class_id, product.class_id
+  FROM tax_calculation_rate rate, tax_calculation_rule rule, tax_class customer, tax_class product
+  WHERE rate.code = 'BG-VAT-20' AND rule.code = 'Bulgarian VAT'
+    AND customer.class_name = 'Retail Customer' AND customer.class_type = 'CUSTOMER'
+    AND product.class_name = 'Taxable Goods' AND product.class_type = 'PRODUCT'
+    AND NOT EXISTS (
+      SELECT 1 FROM tax_calculation existing
+      WHERE existing.tax_calculation_rate_id = rate.tax_calculation_rate_id
+        AND existing.tax_calculation_rule_id = rule.tax_calculation_rule_id);"
+
 # The image warms the config cache at build time, so the new values only take
 # effect after the config cache is cleaned.
 php bin/magento cache:clean config > /dev/null
