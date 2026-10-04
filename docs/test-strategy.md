@@ -95,6 +95,6 @@ v1.0 is released when the P1 and P2 risks above have API coverage, P1 journeys h
 
 ## Reporting
 
-- **Allure results** from every CI run, with each HTTP exchange attached
+- **[Allure report](https://nikolay-chillev.github.io/magento-qa/)** published after every push to `main`, with trends across runs; every CI run also keeps its raw results for 14 days
 - **Findings** in the store or the environment: GitHub issues labelled `finding`, summarised in [findings.md](findings.md)
 - **Decisions**: [architecture decision records](adr/)

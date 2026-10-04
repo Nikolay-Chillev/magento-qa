@@ -1,5 +1,10 @@
 # Magento QA
 
+[![CI](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/ci.yml/badge.svg)](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/ci.yml)
+[![Allure report](https://img.shields.io/badge/Allure-report-orange)](https://nikolay-chillev.github.io/magento-qa/)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 Test automation for a Magento 2 e-commerce store, built the way a retail QA team would approach it: API, UI, transactional emails, accessibility and performance, all running against a disposable Docker environment and in CI.
 
 Magento (Adobe Commerce Open Source) powers many large European online shops, so the scenarios here mirror real retail flows: catalog, cart, checkout, customer accounts and order emails.
@@ -73,7 +78,8 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [ ] API: cart, coupons and promotions, all 28 oblasts, VAT
 - [ ] API: customer accounts and security, GraphQL
 - [ ] UI (Playwright for Python): checkout, catalog, accounts, mobile
-- [ ] Allure report on GitHub Pages, nightly cross-browser run
+- [x] Allure report on GitHub Pages, with history across runs
+- [ ] Nightly cross-browser run
 - [ ] Accessibility (axe-core), performance smoke (k6)
 
 ## Notes
