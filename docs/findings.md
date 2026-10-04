@@ -13,6 +13,7 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#18](https://github.com/Nikolay-Chillev/magento-qa/issues/18) | Elasticsearch crashes on the first start of a fresh container | Minor | Environment | Open, worked around |
 | [#19](https://github.com/Nikolay-Chillev/magento-qa/issues/19) | Missing oblast is only rejected when the order is placed | Minor | Product | Open, covered by a test |
 | [#20](https://github.com/Nikolay-Chillev/magento-qa/issues/20) | Product names in API responses contain HTML entities | Minor | Test data | Open |
+| [#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) | REST cart API turns zero and negative quantities into 1 | Major | Product | Open, covered by `xfail` tests |
 
 ## Details
 
@@ -43,6 +44,10 @@ For a Bulgarian address without `region_id`, the shipping-information step succe
 ### #20 Product names in API responses contain HTML entities
 
 `Minerva LumaTech&trade; V-Tee` instead of `Minerva LumaTech™ V-Tee`, in GraphQL search results and in order items. The Luma theme renders it as HTML, but a client that treats names as text would show `&trade;` literally. A sample-data quality issue rather than a Magento defect.
+
+### #29 REST cart API turns zero and negative quantities into 1
+
+Adding an item with `qty` 0 or negative, or updating an item to 0, answers 200 and leaves one unit in the cart. GraphQL rejects the same input with *The product quantity should be greater than 0*. **Root cause:** `Magento\Quote\Model\Quote\Item::_prepareQty()` replaces any non-positive quantity with 1 while the REST payload is deserialised, so the `qty <= 0` check in `CartItemPersister` never sees the original value. A headless client that sends 0 to remove an item keeps one unit instead. The expected behaviour is pinned by strict `xfail` tests in `tests/api/test_cart.py`: they fail today and will turn red as soon as Magento fixes it, prompting the marker's removal.
 
 ## To investigate
 
