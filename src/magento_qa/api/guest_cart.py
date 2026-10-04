@@ -1,9 +1,19 @@
 """Guest checkout: cart, shipping and order placement without a customer account."""
 
+from collections.abc import Sequence
+from typing import Any
+
 from magento_qa.api.errors import raise_for_magento_error
 from magento_qa.api.http import HttpClient
 from magento_qa.models.address import Address
-from magento_qa.models.cart import CartItem, PaymentDetails, ShippingMethod
+from magento_qa.models.cart import (
+    Cart,
+    CartItem,
+    PaymentDetails,
+    ShippingMethod,
+    Totals,
+    VariantOption,
+)
 
 
 class GuestCartClient:
@@ -19,13 +29,52 @@ class GuestCartClient:
         cart_id: str = response.json()
         return cart_id
 
-    def add_item(self, cart_id: str, sku: str, qty: int = 1) -> CartItem:
-        response = self.http.post(
-            f"rest/V1/guest-carts/{cart_id}/items",
-            json={"cartItem": {"sku": sku, "qty": qty, "quote_id": cart_id}},
+    def get(self, cart_id: str) -> Cart:
+        response = self.http.get(f"rest/V1/guest-carts/{cart_id}")
+        raise_for_magento_error(response)
+        return Cart.model_validate(response.json())
+
+    def add_item(
+        self,
+        cart_id: str,
+        sku: str,
+        qty: float = 1,
+        *,
+        options: Sequence[VariantOption] = (),
+    ) -> CartItem:
+        """Add a product; ``options`` choose the variant of a configurable product."""
+        item: dict[str, Any] = {"sku": sku, "qty": qty, "quote_id": cart_id}
+        if options:
+            item["product_option"] = {
+                "extension_attributes": {
+                    "configurable_item_options": [option.model_dump() for option in options]
+                }
+            }
+        response = self.http.post(f"rest/V1/guest-carts/{cart_id}/items", json={"cartItem": item})
+        raise_for_magento_error(response)
+        return CartItem.model_validate(response.json())
+
+    def update_item(self, cart_id: str, item_id: int, qty: float) -> CartItem:
+        response = self.http.put(
+            f"rest/V1/guest-carts/{cart_id}/items/{item_id}",
+            json={"cartItem": {"qty": qty, "quote_id": cart_id}},
         )
         raise_for_magento_error(response)
         return CartItem.model_validate(response.json())
+
+    def remove_item(self, cart_id: str, item_id: int) -> None:
+        response = self.http.delete(f"rest/V1/guest-carts/{cart_id}/items/{item_id}")
+        raise_for_magento_error(response)
+
+    def items(self, cart_id: str) -> list[CartItem]:
+        response = self.http.get(f"rest/V1/guest-carts/{cart_id}/items")
+        raise_for_magento_error(response)
+        return [CartItem.model_validate(item) for item in response.json()]
+
+    def totals(self, cart_id: str) -> Totals:
+        response = self.http.get(f"rest/V1/guest-carts/{cart_id}/totals")
+        raise_for_magento_error(response)
+        return Totals.model_validate(response.json())
 
     def estimate_shipping(self, cart_id: str, address: Address) -> list[ShippingMethod]:
         response = self.http.post(
