@@ -12,6 +12,8 @@ Two kinds of tests depend on that background work:
 - Catalog changes made through the admin API (new products, prices, stock) only reach category pages, search and the price index after the indexers run.
 - Coupon usage is counted by the `sales.rule.update.coupon.usage` consumer, so a "one use per customer" limit cannot be enforced without it.
 
+> **Update 2026-10-04:** checked on 2.4.9 — a coupon's overall usage limit is enforced when the order is placed, without the consumer (see the coupon usage tests). The consumer still matters for per-customer usage of registered customers and for catalog indexing, so this proposal stands for those cases.
+
 Running cron permanently in the container would make the suite timing-dependent: a test would pass or fail depending on whether a cron run happened in time.
 
 ## Decision
@@ -24,4 +26,4 @@ Catalog tests keep using the sample data read-only, so most tests never need it.
 
 - Tests that depend on background processing become deterministic.
 - The `env_control` tests need access to the Docker container, so they can only run where the suite controls the environment (locally and in CI), not against a remote store.
-- To be implemented with the first test that needs it (coupon usage limits).
+- To be implemented with the first test that needs it (per-customer coupon limits or catalog changes).

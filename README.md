@@ -80,7 +80,8 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] CI on GitHub Actions: lint, type checks, tests in parallel, Allure results
 - [x] API: guest checkout with a Bulgarian address, order record and confirmation email
 - [x] API: cart, product variants, coupons and automatic promotions
-- [ ] API: coupon usage limits, all 28 oblasts, VAT
+- [x] API: coupon usage limits, including a single-use code held in two carts
+- [ ] API: all 28 oblasts, VAT
 - [ ] API: customer accounts and security, GraphQL
 - [x] UI foundation (Playwright for Python): page objects, cart seeding, screenshot and trace on failure
 - [x] UI: guest checkout with a Bulgarian address, verified in the back office and by email

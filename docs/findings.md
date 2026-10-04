@@ -59,6 +59,6 @@ Adding an item with `qty` 0 or negative, or updating an item to 0, answers 200 a
 
 The rule's condition requires a tee in the cart, but its action applies to all items: one €22 tee plus four €34 bags gets a bag for free. Four bags without a tee get nothing, which confirms the tee only unlocks the discount. **Recommendation:** restrict the action ("Apply to") to the Tees categories, as the rule's name promises. A configuration mistake rather than a Magento defect, and a classic way promotions leak revenue.
 
-## To investigate
+## Checked, not a finding
 
-- **Coupon usage limits without queue consumers.** Usage is counted by a consumer that does not run in this image, so a "one use per customer" limit is probably not enforced. To be confirmed by the coupon tests ([ADR 0005](adr/0005-trigger-cron-and-queue-consumers-explicitly.md)).
+- **Coupon usage limits without queue consumers.** The hypothesis was that a single-use coupon could be redeemed repeatedly because usage counting looked asynchronous. Verified on 2.4.9: `times_used` is incremented when the order is placed, a spent coupon is refused, and when two carts hold the same single-use code only one order gets the discount. If the second shopper sets their address after the first order, the spent coupon is dropped from their totals without a message and they pay full price; correct for revenue, but they are not told why the discount disappeared. Covered by `TestCouponUsageLimits` in `tests/api/test_promotions.py`.
