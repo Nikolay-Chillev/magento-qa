@@ -39,13 +39,14 @@ All state (orders, customers, configuration) lives inside the container, so ever
 
 ## Test environment
 
-The Magento image is pinned by digest, so every run uses exactly the same build. On each start, [`docker/magento/custom-entrypoint.sh`](docker/magento/custom-entrypoint.sh) applies a few settings that deviate from Magento defaults on purpose:
+The Magento image is pinned by digest, so every run uses exactly the same build. On each start, [`docker/magento/custom-entrypoint.sh`](docker/magento/custom-entrypoint.sh) applies a few settings and data changes that deviate from the defaults on purpose:
 
 | Setting | Default | Here | Why |
 |---|---|---|---|
 | `system/smtp/*` | sendmail | SMTP to `mailpit:1025` | Every outgoing email lands in Mailpit, where tests can assert on it |
 | `admin/security/password_lifetime` | 90 days | 0 (never expires) | The image's admin password would otherwise force a change 90 days after the image was built |
 | `customer/password/password_reset_protection_type` | By IP and email | By email | All test traffic comes from one IP, so IP-based throttling would allow one reset per 10 minutes for the whole suite |
+| Product stock | 100 per product | 100,000; `24-UG04` keeps 5 | Each order reserves stock and no queue consumer releases it, so repeated runs on one store would sell products out; one product stays low for the stock-limit test |
 
 The container reports healthy only after these settings are active and catalog search returns results, so `docker compose up --wait` is enough to know the store is ready.
 

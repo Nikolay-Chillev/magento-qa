@@ -18,6 +18,7 @@ pytestmark = pytest.mark.api
 
 SIMPLE_SKU = "24-MB01"  # Joust Duffle Bag
 HOODIE_SKU = "MH01"  # Chaz Kangeroo Hoodie: Color Black/Gray/Orange, Size XS-XL
+LOW_STOCK_SKU = "24-UG04"  # Zing Jump Rope: stock kept at 5 by the environment setup
 QTY_FINDING = (
     "Finding #29: the REST cart API turns zero and negative quantities into 1 "
     "instead of rejecting them"
@@ -119,10 +120,10 @@ class TestQuantityRules:
     def test_more_than_in_stock_is_rejected(
         self, guest_cart: GuestCartClient, cart_id: str, admin: AdminClient
     ) -> None:
-        stock = admin.stock_item(SIMPLE_SKU).qty
+        stock = admin.stock_item(LOW_STOCK_SKU).qty
 
         with pytest.raises(MagentoApiError, match="Not enough items for sale"):
-            guest_cart.add_item(cart_id, SIMPLE_SKU, qty=float(stock + 1))
+            guest_cart.add_item(cart_id, LOW_STOCK_SKU, qty=float(stock + 1))
 
         assert guest_cart.items(cart_id) == []
 
