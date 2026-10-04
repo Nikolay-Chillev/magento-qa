@@ -47,6 +47,7 @@ The Magento image is pinned by digest, so every run uses exactly the same build.
 | `admin/security/password_lifetime` | 90 days | 0 (never expires) | The image's admin password would otherwise force a change 90 days after the image was built |
 | `customer/password/password_reset_protection_type` | By IP and email | By email | All test traffic comes from one IP, so IP-based throttling would allow one reset per 10 minutes for the whole suite |
 | Product stock | 100 per product | 100,000; `24-UG04` keeps 5 | Each order reserves stock and no queue consumer releases it, so repeated runs on one store would sell products out; one product stays low for the stock-limit test |
+| Tax rule `Bulgarian VAT` | none for Bulgaria | 20% on taxable goods, all customer groups | Bulgarian shoppers pay VAT; prices stay net (Magento's default), so VAT is added at checkout |
 
 The container reports healthy only after these settings are active and catalog search returns results, so `docker compose up --wait` is enough to know the store is ready.
 
@@ -81,7 +82,7 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] API: guest checkout with a Bulgarian address, order record and confirmation email
 - [x] API: cart, product variants, coupons and automatic promotions
 - [x] API: coupon usage limits, including a single-use code held in two carts
-- [ ] API: all 28 oblasts, VAT
+- [x] API: orders to all 28 Bulgarian oblasts, required address fields, 20% VAT
 - [ ] API: customer accounts and security, GraphQL
 - [x] UI foundation (Playwright for Python): page objects, cart seeding, screenshot and trace on failure
 - [x] UI: guest checkout with a Bulgarian address, verified in the back office and by email
