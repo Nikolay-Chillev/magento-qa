@@ -5,6 +5,7 @@ fall back to Magento's ``data-`` attributes; layout classes are the last resort.
 """
 
 import re
+from decimal import Decimal
 
 import allure
 from playwright.sync_api import Locator, Page, expect
@@ -157,3 +158,59 @@ class SuccessPage(StorePage):
         match = re.search(r"Your order # is: (\d+)", self.message.inner_text())
         assert match, "No order number on the success page"
         return match.group(1)
+
+
+def money(amount: Decimal) -> str:
+    """Format an amount the way the store shows it, e.g. ``€4.90``."""
+    return f"€{amount:.2f}"
+
+
+class CartPage(StorePage):
+    path = "checkout/cart/"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.totals = page.locator("#cart-totals")
+        self.discount_row = self.totals.locator("tr").filter(has_text="Discount")
+        self.order_total = self.totals.locator("tr.grand.totals")
+        self._discount_block = page.locator("#block-discount")
+        self._discount_title = page.locator("#block-discount-heading")
+        self.coupon_field = page.get_by_label("Enter discount code")
+        self.apply_button = page.get_by_role("button", name="Apply Discount")
+        self.cancel_button = page.get_by_role("button", name="Cancel Coupon")
+
+    def open(self) -> "CartPage":
+        with allure.step("Open the cart"):
+            self.page.goto(self.path)
+            wait_for_luma(self.page)
+            # The totals table is filled in by JavaScript after load.
+            expect(self.order_total).to_be_visible()
+        return self
+
+    def message(self, text: str) -> Locator:
+        return self.page.get_by_role("alert").filter(has_text=text)
+
+    def _open_discount_form(self) -> None:
+        # The section is collapsed by default; Luma marks it open only with a CSS class.
+        if "active" not in (self._discount_block.get_attribute("class") or ""):
+            self._discount_title.click()
+        expect(self._discount_block).to_have_class(re.compile(r"\bactive\b"))
+
+    def apply_coupon(self, code: str) -> "CartPage":
+        with allure.step(f"Apply coupon {code}"):
+            self._open_discount_form()
+            self.coupon_field.fill(code)
+            self.apply_button.click()
+            self.page.wait_for_load_state()
+            wait_for_luma(self.page)
+            expect(self.order_total).to_be_visible()
+        return self
+
+    def cancel_coupon(self) -> "CartPage":
+        with allure.step("Cancel the coupon"):
+            self._open_discount_form()
+            self.cancel_button.click()
+            self.page.wait_for_load_state()
+            wait_for_luma(self.page)
+            expect(self.order_total).to_be_visible()
+        return self
