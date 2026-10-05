@@ -27,7 +27,7 @@ Requirements: Docker and a Bash shell (Git Bash on Windows).
 ./scripts/start.sh
 ```
 
-The script starts the containers and waits until the store is ready for tests: the test configuration is applied and catalog search answers. A fresh start takes about 45 seconds.
+The script starts the containers and waits until the store is ready for tests: the test configuration is applied and catalog search answers. A fresh start takes about 30 seconds.
 
 To reset the store to its initial sample data:
 
