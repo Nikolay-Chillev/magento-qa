@@ -88,6 +88,8 @@ Known limitations of the environment:
 
 ## Merge and release criteria
 
+Every change reaches `main` through a pull request; a branch ruleset enforces this and requires the `CI passed` check, which fails if linting, type checks or any test fail. Documentation-only changes skip the test jobs but still report the check.
+
 A pull request is merged when:
 - CI is green: lint, types and all tests
 - new tests are independent and have no fixed sleeps

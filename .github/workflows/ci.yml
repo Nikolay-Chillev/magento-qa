@@ -1,14 +1,11 @@
 name: CI
 
+# Always triggered, so the required "CI passed" check reports on every pull request;
+# the jobs themselves are skipped when only documentation changed.
 on:
   pull_request:
-    paths-ignore: &docs-only
-      - "**.md"
-      - "docs/**"
-      - "LICENSE"
   push:
     branches: [main]
-    paths-ignore: *docs-only
   workflow_dispatch:
 
 # A newer push to the same branch makes the running workflow obsolete.
@@ -20,8 +17,32 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect code changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      code: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.code == 'true' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          predicate-quantifier: every
+          filters: |
+            code:
+              - "**"
+              - "!**/*.md"
+              - "!docs/**"
+              - "!LICENSE"
+
   lint:
     name: Lint and type-check
+    needs: changes
+    if: ${{ needs.changes.outputs.code == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -37,6 +58,7 @@ jobs:
   test:
     name: Tests against Magento
     needs: lint
+    if: ${{ needs.lint.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -82,7 +104,7 @@ jobs:
     name: Publish Allure report
     needs: test
     # Publish failing runs too: that is when the report matters most.
-    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ !cancelled() && needs.test.result != 'skipped' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -120,3 +142,24 @@ jobs:
 
       - id: deploy
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # The single check required on main: fails if any job failed or was cancelled,
+  # passes when the test jobs ran green or were skipped for a docs-only change.
+  ci-passed:
+    name: CI passed
+    if: ${{ always() }}
+    needs: [changes, lint, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check the results of the other jobs
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Job results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "::error::A required job ended with: $result"
+              exit 1
+            fi
+          done
