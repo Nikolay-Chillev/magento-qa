@@ -101,7 +101,7 @@ jobs:
           retention-days: 14
 
   report:
-    name: Publish Allure report
+    name: Build Allure report
     needs: test
     # Publish failing runs too: that is when the report matters most.
     if: ${{ !cancelled() && needs.test.result != 'skipped' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -109,11 +109,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+      pages: read  # configure-pages looks up the site URL for the report history
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -140,6 +136,23 @@ jobs:
         with:
           path: allure-report
 
+  # Separate job, as in GitHub's Pages workflows: deploying in the same job as the
+  # upload can run before the artifact is listed and fail with "No artifacts named
+  # github-pages". Re-run the whole workflow rather than this job alone, or the
+  # upload is duplicated and the deploy refuses two artifacts with the same name.
+  deploy:
+    name: Publish Allure report
+    needs: report
+    if: ${{ !cancelled() && needs.report.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - id: deploy
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
