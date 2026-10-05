@@ -6,21 +6,24 @@ Defects and risks found while testing the store and its environment. Each findin
 
 | # | Finding | Severity | Source | Status |
 |---|---|---|---|---|
-| [#14](https://github.com/Nikolay-Chillev/magento-qa/issues/14) | Every response allows cross-origin access from any site | Major | Environment | Open |
-| [#15](https://github.com/Nikolay-Chillev/magento-qa/issues/15) | API error responses expose stack traces | Major | Environment | Accepted for testing |
-| [#16](https://github.com/Nikolay-Chillev/magento-qa/issues/16) | `/health_check.php` returns 500 while the store is healthy | Major | Environment + product | Open, worked around |
-| [#17](https://github.com/Nikolay-Chillev/magento-qa/issues/17) | Server header discloses the nginx version and OS | Minor | Environment | Open |
+| [#14](https://github.com/Nikolay-Chillev/magento-qa/issues/14) | Every response allows cross-origin access from any site | Major | Environment | Closed: by design in the test image |
+| [#15](https://github.com/Nikolay-Chillev/magento-qa/issues/15) | API error responses expose stack traces | Major | Environment | Closed: accepted for a test environment |
+| [#16](https://github.com/Nikolay-Chillev/magento-qa/issues/16) | `/health_check.php` returns 500 while the store is healthy | Major | Environment + product | Closed: known Magento bug, [fixed upstream](https://github.com/magento/magento2/issues/40876) |
+| [#17](https://github.com/Nikolay-Chillev/magento-qa/issues/17) | Server header discloses the nginx version and OS | Minor | Environment | Closed: accepted for a test environment |
 | [#18](https://github.com/Nikolay-Chillev/magento-qa/issues/18) | Elasticsearch crashes on the first start of a fresh container | Minor | Environment | Fixed upstream |
 | [#19](https://github.com/Nikolay-Chillev/magento-qa/issues/19) | Missing oblast is only rejected when the order is placed | Minor | Product | Open, covered by a test |
 | [#20](https://github.com/Nikolay-Chillev/magento-qa/issues/20) | Product names in API responses contain HTML entities | Minor | Test data | Open |
 | [#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) | REST cart API turns zero and negative quantities into 1 | Major | Product | Open, reported as [magento/magento2#41429](https://github.com/magento/magento2/issues/41429) |
-| [#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34) | Free-shipping promotion is applied but Flat Rate still charges shipping | Major | Product | Open, covered by an `xfail` test |
+| [#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34) | Free-shipping promotion is applied but Flat Rate still charges shipping | Major | Product | Open, reported as [magento/magento2#41431](https://github.com/magento/magento2/issues/41431) |
 | [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) | "Buy 3 tees, get the 4th free" gives away any product, not only tees | Major | Configuration | Open, covered by an `xfail` test |
 | [#39](https://github.com/Nikolay-Chillev/magento-qa/issues/39) | Five products have no tax class and are sold without VAT | Major | Configuration | Open, covered by an `xfail` audit |
 
 ## Details
 
 ### #14 Every response allows cross-origin access from any site
+
+**Closed, by design:** CORS is enabled on purpose in magento2-in-a-box (`ENABLE_CORS=true`) so headless frontends can be tested, and the image tests it itself (`tests/cors.spec.ts`). Kept here because it would be a real issue on a production store.
+
 
 Storefront, REST and GraphQL responses send `Access-Control-Allow-Origin: *` with all methods and headers allowed. On a production store any website could call the store's APIs from a visitor's browser and read the answers. The headers come from the image's nginx configuration. **Recommendation:** no CORS headers, or an allow-list of the store's own frontends.
 
@@ -29,6 +32,9 @@ Storefront, REST and GraphQL responses send `Access-Control-Allow-Origin: *` wit
 REST errors include a `trace` field with server paths and class names, because the image runs Magento in developer mode. Acceptable in a test environment and useful for debugging, so it is accepted here; on a production store it is information disclosure. **Recommendation:** production mode on any public environment.
 
 ### #16 `/health_check.php` returns 500 while the store is healthy
+
+**Closed, known upstream:** the igbinary serializer is written by Magento 2.4.9's own `setup:install` for the default file cache, which `health_check.php` rejects. Already reported as [magento/magento2#40876](https://github.com/magento/magento2/issues/40876) and fixed by Adobe (AC-17400) after the 2.4.9 release; this analysis reached the same cause independently.
+
 
 The cache configuration in `app/etc/env.php` defines `backend_options` (igbinary serializer) without a `backend`. Magento falls back to the file cache at runtime, but `pub/health_check.php` treats such a frontend as misconfigured and answers 500. A load balancer or uptime monitor using this endpoint would take a healthy store out of service. **Workaround:** the suite's readiness check uses a GraphQL catalog search instead. **Recommendation:** declare the cache `backend` explicitly.
 
