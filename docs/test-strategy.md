@@ -82,7 +82,7 @@ Known limitations of the environment:
 
 | When | What runs | Where |
 |---|---|---|
-| Every pull request and push to `main` | Lint, type checks, all tests with three parallel workers against a fresh store | GitHub Actions |
+| Every pull request and push to `main` | Lint, type checks, all tests with three parallel workers against a fresh store, summarised in the required `CI passed` check (tests are skipped for documentation-only changes) | GitHub Actions |
 | Nightly (planned) | All tests, UI in Chromium, Firefox and WebKit | GitHub Actions |
 | Locally | `./scripts/start.sh`, then `uv run python -m pytest` | Developer machine |
 
