@@ -10,10 +10,10 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#15](https://github.com/Nikolay-Chillev/magento-qa/issues/15) | API error responses expose stack traces | Major | Environment | Accepted for testing |
 | [#16](https://github.com/Nikolay-Chillev/magento-qa/issues/16) | `/health_check.php` returns 500 while the store is healthy | Major | Environment + product | Open, worked around |
 | [#17](https://github.com/Nikolay-Chillev/magento-qa/issues/17) | Server header discloses the nginx version and OS | Minor | Environment | Open |
-| [#18](https://github.com/Nikolay-Chillev/magento-qa/issues/18) | Elasticsearch crashes on the first start of a fresh container | Minor | Environment | Open, worked around |
+| [#18](https://github.com/Nikolay-Chillev/magento-qa/issues/18) | Elasticsearch crashes on the first start of a fresh container | Minor | Environment | Fixed upstream |
 | [#19](https://github.com/Nikolay-Chillev/magento-qa/issues/19) | Missing oblast is only rejected when the order is placed | Minor | Product | Open, covered by a test |
 | [#20](https://github.com/Nikolay-Chillev/magento-qa/issues/20) | Product names in API responses contain HTML entities | Minor | Test data | Open |
-| [#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) | REST cart API turns zero and negative quantities into 1 | Major | Product | Open, covered by `xfail` tests |
+| [#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) | REST cart API turns zero and negative quantities into 1 | Major | Product | Open, reported as [magento/magento2#41429](https://github.com/magento/magento2/issues/41429) |
 | [#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34) | Free-shipping promotion is applied but Flat Rate still charges shipping | Major | Product | Open, covered by an `xfail` test |
 | [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) | "Buy 3 tees, get the 4th free" gives away any product, not only tees | Major | Configuration | Open, covered by an `xfail` test |
 | [#39](https://github.com/Nikolay-Chillev/magento-qa/issues/39) | Five products have no tax class and are sold without VAT | Major | Configuration | Open, covered by an `xfail` audit |
@@ -38,7 +38,7 @@ The cache configuration in `app/etc/env.php` defines `backend_options` (igbinary
 
 ### #18 Elasticsearch crashes on the first start of a fresh container
 
-A `write.lock` file created when the image was built makes Elasticsearch fail its first start (`AlreadyClosedException`); supervisord restarts it. Search is unavailable for longer after start. **Workaround:** the container healthcheck waits for a successful catalog search ([ADR 0003](adr/0003-apply-test-configuration-inside-the-container.md)).
+A `write.lock` file created when the image was built makes Elasticsearch fail its first start (`AlreadyClosedException`); supervisord restarts it. Search is unavailable for longer after start. The healthcheck waits for a successful catalog search ([ADR 0003](adr/0003-apply-test-configuration-inside-the-container.md)), so tests were never affected, only startup time. **Fixed upstream:** reported with measurements in [magento2-in-a-box#50](https://github.com/controlaltdelete-nl/magento2-in-a-box/pull/50); the maintainer moved the fix to the base image ([magento2-docker-base-images#6](https://github.com/controlaltdelete-nl/magento2-docker-base-images/pull/6)), whose `stop-services` now removes the lock files. With the rebuilt image the store is ready in about 27 seconds instead of 44, without the crash.
 
 ### #19 Missing oblast is only rejected when the order is placed
 
