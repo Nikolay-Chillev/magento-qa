@@ -1,5 +1,7 @@
 """Client for the Mailpit API: find and read the emails the store sent."""
 
+import html
+import re
 from datetime import datetime
 from typing import Any
 
@@ -35,6 +37,14 @@ class Message(_MailpitModel):
     date: datetime
     text: str
     html: str = Field(alias="HTML")
+
+    def link(self, containing: str) -> str:
+        """The first link in the HTML body whose address contains ``containing``."""
+        for href in re.findall(r'href="([^"]+)"', self.html):
+            url = html.unescape(href)
+            if containing in url:
+                return url
+        raise LookupError(f"No link containing {containing!r} in {self.subject!r}")
 
 
 class MailpitClient:
