@@ -11,6 +11,7 @@ import allure
 from playwright.sync_api import Locator, Page, expect
 
 from magento_qa.models.address import Address
+from magento_qa.models.customer import NewCustomer
 from magento_qa.ui.components import Header, wait_for_luma
 
 
@@ -213,4 +214,82 @@ class CartPage(StorePage):
             self.page.wait_for_load_state()
             wait_for_luma(self.page)
             expect(self.order_total).to_be_visible()
+        return self
+
+
+class RegisterPage(StorePage):
+    path = "customer/account/create/"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        # The hidden sign-in pop-up has a "Password" field too, so fields are found in the form.
+        self.form = page.locator("form.form-create-account")
+        self.create_button = self.form.get_by_role("button", name="Create an Account")
+
+    def open(self) -> "RegisterPage":
+        super().open()
+        return self
+
+    def field(self, label: str) -> Locator:
+        return self.form.get_by_label(label, exact=True)
+
+    def fill(self, customer: NewCustomer) -> "RegisterPage":
+        with allure.step(f"Fill the registration form for {customer.email}"):
+            self.field("First Name").fill(customer.firstname)
+            self.field("Last Name").fill(customer.lastname)
+            self.field("Email").fill(customer.email)
+            self.field("Password").fill(customer.password)
+            self.field("Confirm Password").fill(customer.password)
+        return self
+
+    def register(self, customer: NewCustomer) -> "AccountPage":
+        self.fill(customer)
+        with allure.step("Create the account"):
+            self.create_button.click()
+            self.page.wait_for_url(f"**/{AccountPage.path}")
+            wait_for_luma(self.page)
+        return AccountPage(self.page)
+
+
+class LoginPage(StorePage):
+    path = "customer/account/login/"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        # The sign-in pop-up, added later by a script, reuses the same form id.
+        self.form = page.locator(".login-container form.form-login")
+        self.email = self.form.get_by_role("textbox", name="Email")
+        # Magento 2.4.9's password label points to a missing id, so the field has no
+        # label; its accessible name comes from the title attribute (fixed upstream).
+        self.password = self.form.get_by_role("textbox", name="Password")
+        self.sign_in_button = self.form.get_by_role("button", name="Sign In")
+
+    def open(self) -> "LoginPage":
+        super().open()
+        return self
+
+    def sign_in(self, email: str, password: str) -> None:
+        with allure.step(f"Sign in as {email}"):
+            self.email.fill(email)
+            self.password.fill(password)
+            self.sign_in_button.click()
+            self.page.wait_for_load_state()
+            wait_for_luma(self.page)
+
+    def message(self, text: str) -> Locator:
+        return self.page.get_by_role("alert").filter(has_text=text)
+
+
+class AccountPage(StorePage):
+    """The customer's dashboard, "My Account"."""
+
+    path = "customer/account/"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.heading = page.get_by_role("heading", level=1)
+        self.contact_information = page.locator(".box-information .box-content")
+
+    def open(self) -> "AccountPage":
+        super().open()
         return self

@@ -1,5 +1,6 @@
 """Parts shared by every Luma page: header, mini-cart and loading indicators."""
 
+import allure
 from playwright.sync_api import Locator, Page, expect
 
 # Luma shows these while it loads data with JavaScript.
@@ -40,9 +41,21 @@ class Header:
         self.search_box = page.get_by_role("combobox", name="Search")
         self.cart_count = page.locator(".minicart-wrapper .counter-number")
         self._cart_link = page.locator(".minicart-wrapper a.showcart")
+        panel = page.locator(".panel.header")
+        # Filled in by JavaScript: "Welcome, <name>!" once the customer data has loaded.
+        self.greeting = panel.locator(".greet.welcome")
+        self.sign_in_link = panel.get_by_role("link", name="Sign In")
+        self._customer_menu_toggle = panel.locator(".customer-name")
+        self._customer_menu = panel.locator(".customer-menu")
 
     def open_mini_cart(self) -> MiniCart:
         self._cart_link.click()
         mini_cart = MiniCart(self.page)
         expect(mini_cart.panel).to_be_visible()
         return mini_cart
+
+    def sign_out(self) -> None:
+        with allure.step("Sign out from the customer menu"):
+            self._customer_menu_toggle.click()
+            self._customer_menu.get_by_role("link", name="Sign Out").click()
+            self.page.wait_for_url("**/customer/account/logoutSuccess/")
