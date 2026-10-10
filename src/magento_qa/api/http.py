@@ -26,6 +26,10 @@ class HttpClient:
         self.timeout = timeout
         self.session = requests.Session()
 
+    def fresh(self) -> "HttpClient":
+        """A client for the same base URL with its own, empty cookie jar."""
+        return HttpClient(self.base_url, timeout=self.timeout)
+
     def url(self, path: str) -> str:
         """Resolve ``path`` against the base URL; a leading slash is ignored."""
         return urljoin(self.base_url, path.lstrip("/"))
