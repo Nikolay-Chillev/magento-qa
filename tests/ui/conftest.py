@@ -13,8 +13,6 @@ import allure
 import pytest
 from playwright.sync_api import BrowserContext, Page, expect
 
-from magento_qa.api.catalog import CatalogClient
-from magento_qa.api.http import HttpClient
 from magento_qa.config import Settings
 from magento_qa.ui.cart_seed import SeedItem, seed_cart
 
@@ -32,11 +30,6 @@ def base_url(settings: Settings, environment_ready: None) -> str:
 @pytest.fixture(scope="session")
 def browser_context_args(browser_context_args: dict[str, Any]) -> dict[str, Any]:
     return {**browser_context_args, "locale": "en-US", "viewport": {"width": 1366, "height": 900}}
-
-
-@pytest.fixture(scope="session")
-def catalog(store_http: HttpClient) -> CatalogClient:
-    return CatalogClient(store_http)
 
 
 @pytest.fixture
