@@ -12,7 +12,7 @@ def test_defaults_point_to_local_docker_environment(monkeypatch: pytest.MonkeyPa
 
     settings = Settings(_env_file=None)
 
-    assert str(settings.base_url) == "http://localhost:8080/"
+    assert str(settings.base_url) == "http://127.0.0.1:8080/"
     assert str(settings.mailpit_url) == "http://localhost:8025/"
 
 

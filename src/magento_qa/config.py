@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_prefix="QA_", env_file=".env", extra="ignore")
 
-    base_url: HttpUrl = HttpUrl("http://localhost:8080/")
+    base_url: HttpUrl = HttpUrl("http://127.0.0.1:8080/")
     mailpit_url: HttpUrl = HttpUrl("http://localhost:8025/")
     request_timeout: float = Field(default=30.0, gt=0, description="Seconds per HTTP request")
     wait_timeout: float = Field(

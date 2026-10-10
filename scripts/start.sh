@@ -11,6 +11,6 @@ docker compose up -d --wait
 
 echo
 echo "Ready:"
-echo "  Storefront  http://localhost:8080/"
-echo "  Admin       http://localhost:8080/admin"
+echo "  Storefront  http://127.0.0.1:8080/"
+echo "  Admin       http://127.0.0.1:8080/admin"
 echo "  Mailpit     http://localhost:8025/"
