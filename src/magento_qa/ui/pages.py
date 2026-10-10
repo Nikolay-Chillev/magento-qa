@@ -263,15 +263,23 @@ class LoginPage(StorePage):
         # label; its accessible name comes from the title attribute (fixed upstream).
         self.password = self.form.get_by_role("textbox", name="Password")
         self.sign_in_button = self.form.get_by_role("button", name="Sign In")
+        # Shown after repeated wrong passwords. The pop-up's copy of the field has the
+        # same id, so the label belongs to the pop-up and this field has no name.
+        self.captcha = self.form.locator("input[name='captcha[user_login]']")
+        self.captcha_image = self.form.get_by_role(
+            "img", name="Please type the letters and numbers below"
+        )
 
     def open(self) -> "LoginPage":
         super().open()
         return self
 
-    def sign_in(self, email: str, password: str) -> None:
+    def sign_in(self, email: str, password: str, *, captcha: str | None = None) -> None:
         with allure.step(f"Sign in as {email}"):
             self.email.fill(email)
             self.password.fill(password)
+            if captcha is not None:
+                self.captcha.fill(captcha)
             self.sign_in_button.click()
             self.page.wait_for_load_state()
             wait_for_luma(self.page)
