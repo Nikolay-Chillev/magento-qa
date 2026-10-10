@@ -18,7 +18,7 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) | "Buy 3 tees, get the 4th free" gives away any product, not only tees | Major | Configuration | Open, covered by an `xfail` test |
 | [#39](https://github.com/Nikolay-Chillev/magento-qa/issues/39) | Five products have no tax class and are sold without VAT | Major | Configuration | Open, covered by an `xfail` audit |
 | [#53](https://github.com/Nikolay-Chillev/magento-qa/issues/53) | Signing in before the page finishes loading leaves the header showing a guest | Minor | Product | Open |
-| [#57](https://github.com/Nikolay-Chillev/magento-qa/issues/57) | Password reset requests reveal which emails have an account | Minor | Product | Open, known upstream as [magento/magento2#37886](https://github.com/magento/magento2/issues/37886) (GraphQL), covered by an `xfail` test |
+| [#57](https://github.com/Nikolay-Chillev/magento-qa/issues/57) | Password reset requests reveal which emails have an account | Minor | Product | Open, known upstream as [magento/magento2#37886](https://github.com/magento/magento2/issues/37886); the REST case [added there](https://github.com/magento/magento2/issues/37886#issuecomment-6095909420). Covered by an `xfail` test |
 | [#58](https://github.com/Nikolay-Chillev/magento-qa/issues/58) | API tokens stay valid after a password reset | Major | Product | Open, covered by an `xfail` test |
 | [#59](https://github.com/Nikolay-Chillev/magento-qa/issues/59) | A browser signed in before a password reset gets an error page | Minor | Product | Open, known upstream as [magento/magento2#41439](https://github.com/magento/magento2/issues/41439), covered by an `xfail` test |
 | [#65](https://github.com/Nikolay-Chillev/magento-qa/issues/65) | GraphQL calls with a token also sign in a cookie session | Minor | Configuration | Open |
@@ -81,7 +81,7 @@ A customer who sends the sign-in form before the page's scripts have loaded is s
 
 ### #57 Password reset requests reveal which emails have an account
 
-`PUT /V1/customers/password` answers `200 true` for a registered email and `404 No such entity with email = …` for an unknown one; the GraphQL mutation `requestPasswordResetEmail` answers `true` or "Cannot reset the customer's password". Magento hides account existence everywhere else (one message for every failed sign-in, `isEmailAvailable` always `true` by default, a neutral message on the "Forgot Your Password?" form), so these two endpoints are the gap that lets anyone check a list of emails for accounts. The GraphQL side is reported upstream as a feature request; REST has the same cause.
+`PUT /V1/customers/password` answers `200 true` for a registered email and `404 No such entity with email = …` for an unknown one; the GraphQL mutation `requestPasswordResetEmail` answers `true` or "Cannot reset the customer's password". Magento hides account existence everywhere else (one message for every failed sign-in, `isEmailAvailable` always `true` by default, a neutral message on the "Forgot Your Password?" form), so these two endpoints are the gap that lets anyone check a list of emails for accounts. The GraphQL side is reported upstream as a feature request; the REST case, which has the same cause, is added to that report.
 
 ### #58 API tokens stay valid after a password reset
 
