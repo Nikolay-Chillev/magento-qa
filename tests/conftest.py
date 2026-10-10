@@ -7,8 +7,10 @@ store or Mailpit first waits for the environment, while unit tests never do.
 import pytest
 
 from magento_qa.api.admin import AdminClient
+from magento_qa.api.catalog import CatalogClient
 from magento_qa.api.customers import CustomerClient
 from magento_qa.api.directory import DirectoryClient
+from magento_qa.api.graphql import GraphQLClient
 from magento_qa.api.http import HttpClient
 from magento_qa.config import Settings, get_settings
 from magento_qa.mail.mailpit import MailpitClient
@@ -42,6 +44,17 @@ def admin(settings: Settings, environment_ready: None) -> AdminClient:
     """Back-office view of the store. Has its own session, so no cookies mix with shoppers."""
     http = HttpClient(str(settings.base_url), timeout=settings.request_timeout)
     return AdminClient(http, username=settings.admin_username, password=settings.admin_password)
+
+
+@pytest.fixture(scope="session")
+def graphql(store_http: HttpClient) -> GraphQLClient:
+    """Anonymous GraphQL; ``graphql.with_token(token)`` acts as a customer."""
+    return GraphQLClient(store_http)
+
+
+@pytest.fixture(scope="session")
+def catalog(store_http: HttpClient) -> CatalogClient:
+    return CatalogClient(store_http)
 
 
 @pytest.fixture(scope="session")
