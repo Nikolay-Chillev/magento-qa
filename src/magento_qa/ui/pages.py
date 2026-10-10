@@ -32,6 +32,14 @@ class StorePage:
         """A success or error message shown at the top of the page."""
         return self.page.get_by_role("alert").filter(has_text=text)
 
+    def search(self, text: str) -> "SearchResultsPage":
+        with allure.step(f"Search for {text!r} from the header"):
+            self.header.search_box.fill(text)
+            self.header.search_box.press("Enter")
+            self.page.wait_for_url("**/catalogsearch/result/**")
+            wait_for_luma(self.page)
+        return SearchResultsPage(self.page)
+
 
 class HomePage(StorePage):
     path = ""
@@ -68,7 +76,7 @@ class ProductPage(StorePage):
     def option(self, attribute_code: str, label: str) -> Locator:
         """A swatch, e.g. ``option("size", "XS")`` or ``option("color", "Blue")``."""
         return self.page.locator(f"[data-attribute-code='{attribute_code}']").get_by_role(
-            "option", name=label
+            "option", name=label, exact=True
         )
 
     def choose(self, **options: str) -> "ProductPage":
@@ -326,3 +334,94 @@ class ResetPasswordPage(StorePage):
             self.page.wait_for_url(f"**/{LoginPage.path}")
             wait_for_luma(self.page)
         return LoginPage(self.page)
+
+
+class ProductListPage(StorePage):
+    """A list of products with Luma's toolbar and filters: a category or search results."""
+
+    def __init__(self, page: Page, path: str | None = None) -> None:
+        super().__init__(page)
+        if path is not None:
+            self.path = path
+        self.heading = page.get_by_role("heading", level=1)
+        self.products = page.locator(".products.list .product-item")
+        self.product_names = self.products.locator(".product-item-link")
+        self.prices = self.products.locator("[data-price-type='finalPrice'] .price")
+        self.amount = page.locator(".toolbar-amount").first
+        self.active_filters = page.locator(".filter-current .item")
+        self._filters = page.locator("#narrow-by-list")
+        # On a phone the filters hide behind a "Shop By" toggle.
+        self._shop_by = page.get_by_role("tab", name="Shop By")
+
+    def open(self) -> "ProductListPage":
+        super().open()
+        return self
+
+    def filter_by(self, name: str, option: str) -> "ProductListPage":
+        """Apply a filter, e.g. ``filter_by("Size", "M")`` or ``filter_by("Price", "€50.00")``."""
+        with allure.step(f"Filter by {name}: {option}"):
+            if (
+                self._shop_by.is_visible()
+                and self._shop_by.get_attribute("aria-expanded") != "true"
+            ):
+                self._shop_by.click()
+            # A title's accessible name ends with an icon glyph from Luma's font, so the
+            # title is matched by its text instead.
+            title_text = re.compile(rf"^\s*{re.escape(name)}\s*$", re.IGNORECASE)
+            section = self._filters.locator(".filter-options-item").filter(
+                has=self.page.get_by_role("tab").filter(has_text=title_text)
+            )
+            title = section.get_by_role("tab")
+            if title.get_attribute("aria-expanded") != "true":
+                title.click()
+            swatch = section.locator(f"[data-option-label='{option}']")
+            # Swatches (size, colour) are pictures inside the links; other filters are text links.
+            target = (
+                swatch if swatch.count() else section.get_by_role("link").filter(has_text=option)
+            )
+            target.click()
+            self.page.wait_for_load_state()
+            wait_for_luma(self.page)
+        return self
+
+    def clear_filters(self) -> "ProductListPage":
+        with allure.step("Clear all filters"):
+            self.page.get_by_role("link", name="Clear All").click()
+            self.page.wait_for_load_state()
+            wait_for_luma(self.page)
+        return self
+
+    def sort_by(self, option: str, *, descending: bool = False) -> "ProductListPage":
+        """Sort by a "Sort By" option, e.g. ``sort_by("Price", descending=True)``."""
+        with allure.step(f"Sort by {option}{' descending' if descending else ''}"):
+            self.page.get_by_label("Sort By").first.select_option(label=option)
+            self.page.wait_for_load_state()
+            wait_for_luma(self.page)
+            if descending:
+                self.page.get_by_role("link", name="Set Descending Direction").first.click()
+                self.page.wait_for_load_state()
+                wait_for_luma(self.page)
+        return self
+
+    def product(self, name: str) -> Locator:
+        return self.products.filter(has=self.page.get_by_role("link", name=name, exact=True))
+
+    def offered_options(self, product: Locator) -> list[str]:
+        """The sizes and colours a listed product offers, from its swatches."""
+        return [
+            label
+            for label in product.locator("[data-option-label]").evaluate_all(
+                "swatches => swatches.map(s => s.getAttribute('data-option-label'))"
+            )
+            if label
+        ]
+
+    def open_product(self, name: str) -> ProductPage:
+        with allure.step(f"Open product {name!r}"):
+            self.product_names.filter(has_text=name).first.click()
+            wait_for_luma(self.page)
+        return ProductPage(self.page)
+
+
+class SearchResultsPage(ProductListPage):
+    path = "catalogsearch/result/"
