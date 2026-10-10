@@ -45,6 +45,7 @@ The Magento image is pinned by digest, so every run uses exactly the same build.
 | Setting | Default | Here | Why |
 |---|---|---|---|
 | Store URL | | `http://127.0.0.1:8080/` rather than `localhost` | Magento sets the cookie domain to the store's host, and WebKit refuses cookies for the single-label name `localhost`, so nobody could sign in there |
+| Application mode | developer (in the image) | default | In developer mode Magento rewrites `requirejs-config.js` on every page view, so a page loaded at that moment can receive an empty file and its scripts never start |
 | `system/smtp/*` | sendmail | SMTP to `mailpit:1025` | Every outgoing email lands in Mailpit, where tests can assert on it |
 | `admin/security/password_lifetime` | 90 days | 0 (never expires) | The image's admin password would otherwise force a change 90 days after the image was built |
 | `customer/password/password_reset_protection_type` | By IP and email | By email | All test traffic comes from one IP, so IP-based throttling would allow one reset per 10 minutes for the whole suite |
@@ -102,7 +103,7 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 ## Notes
 
 - Windows reserves several TCP port ranges for Hyper-V. If a port is refused, list the reserved ranges with `netsh interface ipv4 show excludedportrange protocol=tcp` and pick another one. This project uses 8080 and 8025.
-- The image runs Magento in developer mode, so API errors include full stack traces; expected here, a finding on a production store ([#15](https://github.com/Nikolay-Chillev/magento-qa/issues/15)).
+- The image runs Magento in developer mode; the test environment switches it to default mode (see [Test environment](#test-environment)), so API errors no longer include stack traces ([#15](https://github.com/Nikolay-Chillev/magento-qa/issues/15)).
 
 ## License
 

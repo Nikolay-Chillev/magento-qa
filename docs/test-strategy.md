@@ -77,7 +77,7 @@ Unit tests of the framework                   fast, no environment
 One environment definition for local runs and CI: Magento and Mailpit in Docker Compose, both images pinned by digest ([ADR 0001](adr/0001-magento-with-sample-data-in-a-pinned-image.md)). A few settings deviate from Magento defaults for testability; they are applied inside the container ([ADR 0003](adr/0003-apply-test-configuration-inside-the-container.md)) and listed in the [README](../README.md#test-environment).
 
 Known limitations of the environment:
-- Developer mode: API errors include stack traces ([#15](https://github.com/Nikolay-Chillev/magento-qa/issues/15)).
+- Default mode instead of the image's developer mode: in developer mode Magento rewrites `requirejs-config.js` on every page view, which broke pages loaded in parallel tests.
 - No cron and no queue consumers: index updates and coupon usage counters do not happen on their own ([ADR 0005](adr/0005-trigger-cron-and-queue-consumers-explicitly.md), proposed).
 
 ## Execution

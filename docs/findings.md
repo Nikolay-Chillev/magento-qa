@@ -34,7 +34,7 @@ Storefront, REST and GraphQL responses send `Access-Control-Allow-Origin: *` wit
 
 ### #15 API error responses expose stack traces
 
-REST errors include a `trace` field with server paths and class names, because the image runs Magento in developer mode. Acceptable in a test environment and useful for debugging, so it is accepted here; on a production store it is information disclosure. **Recommendation:** production mode on any public environment.
+REST errors include a `trace` field with server paths and class names, because the image runs Magento in developer mode. Acceptable in a test environment and useful for debugging, so it is accepted here; on a production store it is information disclosure. **Recommendation:** production mode on any public environment. The test environment now switches the store to default mode (see the README), so the traces no longer appear.
 
 ### #16 `/health_check.php` returns 500 while the store is healthy
 
