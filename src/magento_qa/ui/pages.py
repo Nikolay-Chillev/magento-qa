@@ -28,6 +28,10 @@ class StorePage:
             wait_for_luma(self.page)
         return self
 
+    def message(self, text: str) -> Locator:
+        """A success or error message shown at the top of the page."""
+        return self.page.get_by_role("alert").filter(has_text=text)
+
 
 class HomePage(StorePage):
     path = ""
@@ -151,12 +155,12 @@ class SuccessPage(StorePage):
     def __init__(self, page: Page) -> None:
         super().__init__(page)
         self.heading = page.get_by_role("heading", level=1)
-        self.message = page.locator(".checkout-success")
+        self.confirmation = page.locator(".checkout-success")
 
     @property
     def order_number(self) -> str:
-        expect(self.message).to_contain_text("Your order # is:")
-        match = re.search(r"Your order # is: (\d+)", self.message.inner_text())
+        expect(self.confirmation).to_contain_text("Your order # is:")
+        match = re.search(r"Your order # is: (\d+)", self.confirmation.inner_text())
         assert match, "No order number on the success page"
         return match.group(1)
 
@@ -187,9 +191,6 @@ class CartPage(StorePage):
             # The totals table is filled in by JavaScript after load.
             expect(self.order_total).to_be_visible()
         return self
-
-    def message(self, text: str) -> Locator:
-        return self.page.get_by_role("alert").filter(has_text=text)
 
     def _open_discount_form(self) -> None:
         # The section is collapsed by default; Luma marks it open only with a CSS class.
@@ -284,9 +285,6 @@ class LoginPage(StorePage):
             self.page.wait_for_load_state()
             wait_for_luma(self.page)
 
-    def message(self, text: str) -> Locator:
-        return self.page.get_by_role("alert").filter(has_text=text)
-
 
 class AccountPage(StorePage):
     """The customer's dashboard, "My Account"."""
@@ -301,3 +299,30 @@ class AccountPage(StorePage):
     def open(self) -> "AccountPage":
         super().open()
         return self
+
+
+class ResetPasswordPage(StorePage):
+    """The "Set a New Password" page, opened from the link in the password reset email."""
+
+    path = "customer/account/createPassword/"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.heading = page.get_by_role("heading", level=1)
+        self.form = page.locator("form.password.reset")
+        self.save_button = self.form.get_by_role("button", name="Set a New Password")
+
+    def open_link(self, url: str) -> "ResetPasswordPage":
+        with allure.step("Open the link from the reset email"):
+            self.page.goto(url)
+            wait_for_luma(self.page)
+        return self
+
+    def set_password(self, password: str) -> LoginPage:
+        with allure.step("Set a new password"):
+            self.form.get_by_label("New Password", exact=True).fill(password)
+            self.form.get_by_label("Confirm New Password", exact=True).fill(password)
+            self.save_button.click()
+            self.page.wait_for_url(f"**/{LoginPage.path}")
+            wait_for_luma(self.page)
+        return LoginPage(self.page)

@@ -18,6 +18,9 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) | "Buy 3 tees, get the 4th free" gives away any product, not only tees | Major | Configuration | Open, covered by an `xfail` test |
 | [#39](https://github.com/Nikolay-Chillev/magento-qa/issues/39) | Five products have no tax class and are sold without VAT | Major | Configuration | Open, covered by an `xfail` audit |
 | [#53](https://github.com/Nikolay-Chillev/magento-qa/issues/53) | Signing in before the page finishes loading leaves the header showing a guest | Minor | Product | Open |
+| [#57](https://github.com/Nikolay-Chillev/magento-qa/issues/57) | Password reset requests reveal which emails have an account | Minor | Product | Open, known upstream as [magento/magento2#37886](https://github.com/magento/magento2/issues/37886) (GraphQL), covered by an `xfail` test |
+| [#58](https://github.com/Nikolay-Chillev/magento-qa/issues/58) | API tokens stay valid after a password reset | Major | Product | Open, covered by an `xfail` test |
+| [#59](https://github.com/Nikolay-Chillev/magento-qa/issues/59) | A browser signed in before a password reset gets an error page | Minor | Product | Open, known upstream as [magento/magento2#41439](https://github.com/magento/magento2/issues/41439), covered by an `xfail` test |
 
 ## Details
 
@@ -74,6 +77,18 @@ With the 20% Bulgarian VAT rule in place, a Radiant Tee is charged €4.40 VAT o
 ### #53 Signing in before the page finishes loading leaves the header showing a guest
 
 A customer who sends the sign-in form before the page's scripts have loaded is signed in, but the header keeps "Default welcome msg!" and an empty mini-cart on every page, even when their cart has items. **Root cause:** Luma refreshes the customer data only when its script sees the form being submitted (`customer-data.js` marks the affected sections as stale in the `section_data_ids` cookie). Without that mark, the next page finds nothing to reload, and the data never expires on its own. Reproduced 12 out of 12 times when the form is sent right after `DOMContentLoaded`. In production mode the window is shorter, but a password manager filling the form on a slow mobile connection can still hit it. The UI tests wait for Luma's scripts before they interact with a page; before that, the sign-in tests failed intermittently with three parallel workers.
+
+### #57 Password reset requests reveal which emails have an account
+
+`PUT /V1/customers/password` answers `200 true` for a registered email and `404 No such entity with email = …` for an unknown one; the GraphQL mutation `requestPasswordResetEmail` answers `true` or "Cannot reset the customer's password". Magento hides account existence everywhere else (one message for every failed sign-in, `isEmailAvailable` always `true` by default, a neutral message on the "Forgot Your Password?" form), so these two endpoints are the gap that lets anyone check a list of emails for accounts. The GraphQL side is reported upstream as a feature request; REST has the same cause.
+
+### #58 API tokens stay valid after a password reset
+
+A password reset, or a password change while signed in, ends the customer's browser sessions (`SessionCleaner::clearFor`) but not their API tokens: those are revoked only when the customer is deactivated or deleted. A token stolen before the reset keeps working until it expires (one hour by default). **Recommendation:** revoke the customer's tokens wherever the sessions are cleared.
+
+### #59 A browser signed in before a password reset gets an error page
+
+The next request from a browser that was signed in before the reset fails with HTTP 500 (`SessionException: The session has expired, please login again.`) instead of redirecting to the sign-in page; the request after that works. Thrown by `CutoffValidator` while the session starts. Reported upstream with a fix proposed in [magento/magento2#41440](https://github.com/magento/magento2/pull/41440). The cutoff is compared in whole seconds, so a session from the same second as the reset survives it; the test waits for the next second before resetting.
 
 ## To investigate
 
