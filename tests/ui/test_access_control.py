@@ -97,7 +97,11 @@ class TestOtherCustomersDataInTheStorefront:
         assert ORDER_HISTORY.search(response.headers["location"])
         page.goto("checkout/cart/")
         expect(page.get_by_role("heading", level=1)).to_have_text("Shopping Cart")
-        expect(page.get_by_text("You have no items in your shopping cart.")).to_be_visible()
+        # The mini-cart has the same sentence once its script has drawn it.
+        empty_cart = page.get_by_role("main").get_by_text(
+            "You have no items in your shopping cart."
+        )
+        expect(empty_cart).to_be_visible()
 
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.title("Another customer's address cannot be opened for editing by its id")
