@@ -5,6 +5,13 @@ from typing import Any
 from pydantic import BaseModel
 
 
+class CustomerAddress(BaseModel):
+    id: int
+    customer_id: int
+    street: list[str]
+    city: str
+
+
 class Customer(BaseModel):
     id: int
     email: str
@@ -13,6 +20,7 @@ class Customer(BaseModel):
     group_id: int
     website_id: int
     store_id: int
+    addresses: list[CustomerAddress] = []
 
 
 class NewCustomer(BaseModel):
