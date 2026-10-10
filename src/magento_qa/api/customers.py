@@ -34,3 +34,19 @@ class CustomerClient:
         )
         raise_for_magento_error(response)
         return Customer.model_validate(response.json())
+
+    def request_password_reset(self, email: str) -> None:
+        """Send the "Reset your password" email, as the "Forgot Your Password?" form does."""
+        response = self.http.put(
+            "rest/V1/customers/password",
+            json={"email": email, "template": "email_reset", "websiteId": 1},
+        )
+        raise_for_magento_error(response)
+
+    def reset_password(self, email: str, reset_token: str, new_password: str) -> None:
+        """Set a new password with the token from the reset email."""
+        response = self.http.post(
+            "rest/V1/customers/resetPassword",
+            json={"email": email, "resetToken": reset_token, "newPassword": new_password},
+        )
+        raise_for_magento_error(response)
