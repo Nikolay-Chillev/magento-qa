@@ -17,6 +17,7 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34) | Free-shipping promotion is applied but Flat Rate still charges shipping | Major | Product | Open, reported as [magento/magento2#41431](https://github.com/magento/magento2/issues/41431) |
 | [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) | "Buy 3 tees, get the 4th free" gives away any product, not only tees | Major | Configuration | Open, covered by an `xfail` test |
 | [#39](https://github.com/Nikolay-Chillev/magento-qa/issues/39) | Five products have no tax class and are sold without VAT | Major | Configuration | Open, covered by an `xfail` audit |
+| [#53](https://github.com/Nikolay-Chillev/magento-qa/issues/53) | Signing in before the page finishes loading leaves the header showing a guest | Minor | Product | Open |
 
 ## Details
 
@@ -70,8 +71,13 @@ The rule's condition requires a tee in the cart, but its action applies to all i
 
 With the 20% Bulgarian VAT rule in place, a Radiant Tee is charged €4.40 VAT on €22, but a Joust Duffle Bag is charged nothing: `24-MB01`, `24-UG06`, `24-WG081-gray`, `24-WG085` and `24-WG085_Group` have no tax class at all, so no tax rule can match them. On a live store this under-collects VAT. Found through the admin API (`tax_class_id` is null) and pinned by a catalog audit test; the VAT tests use a taxable product.
 
+### #53 Signing in before the page finishes loading leaves the header showing a guest
+
+A customer who sends the sign-in form before the page's scripts have loaded is signed in, but the header keeps "Default welcome msg!" and an empty mini-cart on every page, even when their cart has items. **Root cause:** Luma refreshes the customer data only when its script sees the form being submitted (`customer-data.js` marks the affected sections as stale in the `section_data_ids` cookie). Without that mark, the next page finds nothing to reload, and the data never expires on its own. Reproduced 12 out of 12 times when the form is sent right after `DOMContentLoaded`. In production mode the window is shorter, but a password manager filling the form on a slow mobile connection can still hit it. The UI tests wait for Luma's scripts before they interact with a page; before that, the sign-in tests failed intermittently with three parallel workers.
+
 ## To investigate
 
+- **Password label on the sign-in page.** In 2.4.9 the label says `for="pass"` while the field's id is `password`, so clicking the label does not focus the field and the field's accessible name comes only from its `title`. Already fixed in Magento's `2.4-develop` branch; the accessibility checks will show whether 2.4.9 needs a note.
 - **Discount code section on the cart page.** The "Apply Discount Code" title expands the form, but its open state is only a CSS class: the title has no `aria-expanded` and is not exposed as a button. Screen-reader users may not know the section opened. To be confirmed with the accessibility checks.
 
 ## Checked, not a finding
