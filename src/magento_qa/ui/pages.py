@@ -299,3 +299,30 @@ class AccountPage(StorePage):
     def open(self) -> "AccountPage":
         super().open()
         return self
+
+
+class ResetPasswordPage(StorePage):
+    """The "Set a New Password" page, opened from the link in the password reset email."""
+
+    path = "customer/account/createPassword/"
+
+    def __init__(self, page: Page) -> None:
+        super().__init__(page)
+        self.heading = page.get_by_role("heading", level=1)
+        self.form = page.locator("form.password.reset")
+        self.save_button = self.form.get_by_role("button", name="Set a New Password")
+
+    def open_link(self, url: str) -> "ResetPasswordPage":
+        with allure.step("Open the link from the reset email"):
+            self.page.goto(url)
+            wait_for_luma(self.page)
+        return self
+
+    def set_password(self, password: str) -> LoginPage:
+        with allure.step("Set a new password"):
+            self.form.get_by_label("New Password", exact=True).fill(password)
+            self.form.get_by_label("Confirm New Password", exact=True).fill(password)
+            self.save_button.click()
+            self.page.wait_for_url(f"**/{LoginPage.path}")
+            wait_for_luma(self.page)
+        return LoginPage(self.page)
