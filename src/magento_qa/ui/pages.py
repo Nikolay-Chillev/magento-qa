@@ -68,7 +68,7 @@ class ProductPage(StorePage):
     def option(self, attribute_code: str, label: str) -> Locator:
         """A swatch, e.g. ``option("size", "XS")`` or ``option("color", "Blue")``."""
         return self.page.locator(f"[data-attribute-code='{attribute_code}']").get_by_role(
-            "option", name=label
+            "option", name=label, exact=True
         )
 
     def choose(self, **options: str) -> "ProductPage":
