@@ -33,9 +33,9 @@ def browser_context_args(browser_context_args: dict[str, Any]) -> dict[str, Any]
 
 
 @pytest.fixture
-def seed(context: BrowserContext, base_url: str) -> Callable[[Sequence[SeedItem]], None]:
+def seed(page: Page, base_url: str) -> Callable[[Sequence[SeedItem]], None]:
     """Fill this test's cart before it opens the first page."""
-    return lambda items: seed_cart(context, base_url, items)
+    return lambda items: seed_cart(page, base_url, items)
 
 
 _reports_key = pytest.StashKey[dict[str, pytest.TestReport]]()
