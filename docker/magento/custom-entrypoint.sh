@@ -58,6 +58,14 @@ INSERT INTO tax_calculation
       WHERE existing.tax_calculation_rate_id = rate.tax_calculation_rate_id
         AND existing.tax_calculation_rule_id = rule.tax_calculation_rule_id);"
 
+# Default mode instead of the image's developer mode. In developer mode Magento
+# rewrites requirejs-config.js on every page view, so a page loaded at that moment
+# can receive an empty file and none of its scripts start. Changed in env.php
+# directly: `deploy:mode:set` would also delete the generated code and static files
+# and make the first requests of a test run slow.
+sed -i "s/'MAGE_MODE' => 'developer'/'MAGE_MODE' => 'default'/" app/etc/env.php
+php bin/magento deploy:mode:show | grep -q "mode: default"
+
 # The image warms the config cache at build time, so the new values only take
 # effect after the config cache is cleaned.
 php bin/magento cache:clean config > /dev/null
