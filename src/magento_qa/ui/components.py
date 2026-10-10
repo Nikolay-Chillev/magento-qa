@@ -3,6 +3,8 @@
 import allure
 from playwright.sync_api import Locator, Page, expect
 
+from magento_qa.waits import wait_until
+
 # Luma shows these while it loads data with JavaScript.
 LOADERS = ".loading-mask, #checkout-loader, [data-role='loader']"
 
@@ -56,6 +58,14 @@ class Header:
 
     def sign_out(self) -> None:
         with allure.step("Sign out from the customer menu"):
-            self._customer_menu_toggle.click()
-            self._customer_menu.get_by_role("link", name="Sign Out").click()
+            sign_out = self._customer_menu.get_by_role("link", name="Sign Out")
+
+            # The menu is a script widget; a click before it is set up does nothing.
+            def menu_open() -> bool:
+                if self._customer_menu_toggle.get_attribute("aria-expanded") != "true":
+                    self._customer_menu_toggle.click()
+                return sign_out.is_visible()
+
+            wait_until(menu_open, description="the customer menu to open", timeout=10)
+            sign_out.click()
             self.page.wait_for_url("**/customer/account/logoutSuccess/")
