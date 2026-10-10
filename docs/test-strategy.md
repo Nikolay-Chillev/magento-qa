@@ -85,7 +85,7 @@ Known limitations of the environment:
 | When | What runs | Where |
 |---|---|---|
 | Every pull request and push to `main` | Lint, type checks, all tests with three parallel workers against a fresh store, summarised in the required `CI passed` check (tests are skipped for documentation-only changes) | GitHub Actions |
-| Nightly (planned) | All tests, UI in Chromium, Firefox and WebKit | GitHub Actions |
+| Nightly, 02:00 UTC | All tests in Chromium; UI tests also in Firefox and WebKit, each browser in its own job. A summary per browser on the run page, one Allure report for all three as a run artifact | GitHub Actions |
 | Locally | `./scripts/start.sh`, then `uv run python -m pytest` | Developer machine |
 
 ## Merge and release criteria

@@ -1,6 +1,7 @@
 # Magento QA
 
 [![CI](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/ci.yml/badge.svg)](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/ci.yml)
+[![Nightly](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/nightly.yml/badge.svg)](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/nightly.yml)
 [![Allure report](https://img.shields.io/badge/Allure-report-orange)](https://nikolay-chillev.github.io/magento-qa/)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -94,7 +95,7 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] UI: register, sign in and sign out
 - [x] UI: search, category filters and sorting, product options to the mini-cart, on desktop and phone
 - [x] Allure report on GitHub Pages, with history across runs
-- [ ] Nightly cross-browser run
+- [x] Nightly run: full suite, UI tests in Chromium, Firefox and WebKit
 - [ ] Accessibility (axe-core), performance smoke (k6)
 
 ## Notes
