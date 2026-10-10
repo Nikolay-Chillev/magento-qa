@@ -28,6 +28,10 @@ class StorePage:
             wait_for_luma(self.page)
         return self
 
+    def message(self, text: str) -> Locator:
+        """A success or error message shown at the top of the page."""
+        return self.page.get_by_role("alert").filter(has_text=text)
+
 
 class HomePage(StorePage):
     path = ""
@@ -151,12 +155,12 @@ class SuccessPage(StorePage):
     def __init__(self, page: Page) -> None:
         super().__init__(page)
         self.heading = page.get_by_role("heading", level=1)
-        self.message = page.locator(".checkout-success")
+        self.confirmation = page.locator(".checkout-success")
 
     @property
     def order_number(self) -> str:
-        expect(self.message).to_contain_text("Your order # is:")
-        match = re.search(r"Your order # is: (\d+)", self.message.inner_text())
+        expect(self.confirmation).to_contain_text("Your order # is:")
+        match = re.search(r"Your order # is: (\d+)", self.confirmation.inner_text())
         assert match, "No order number on the success page"
         return match.group(1)
 
@@ -187,9 +191,6 @@ class CartPage(StorePage):
             # The totals table is filled in by JavaScript after load.
             expect(self.order_total).to_be_visible()
         return self
-
-    def message(self, text: str) -> Locator:
-        return self.page.get_by_role("alert").filter(has_text=text)
 
     def _open_discount_form(self) -> None:
         # The section is collapsed by default; Luma marks it open only with a CSS class.
@@ -283,9 +284,6 @@ class LoginPage(StorePage):
             self.sign_in_button.click()
             self.page.wait_for_load_state()
             wait_for_luma(self.page)
-
-    def message(self, text: str) -> Locator:
-        return self.page.get_by_role("alert").filter(has_text=text)
 
 
 class AccountPage(StorePage):
