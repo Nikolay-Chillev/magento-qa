@@ -86,7 +86,8 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] API: customer registration and sign-in, password rules, welcome email
 - [x] API + UI: brute-force protection, token lockout and sign-in CAPTCHA
 - [x] API + UI: password reset from the email to the browser
-- [ ] API: access control, GraphQL
+- [x] API + UI: access control between customers and to back-office endpoints
+- [ ] API: GraphQL
 - [x] UI foundation (Playwright for Python): page objects, cart seeding, screenshot and trace on failure
 - [x] UI: guest checkout with a Bulgarian address, verified in the back office and by email
 - [x] UI: apply and cancel a coupon in the cart
