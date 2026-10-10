@@ -1,11 +1,13 @@
 """Realistic Bulgarian customers for the store, generated with bg-test-data."""
 
+import secrets
 import uuid
 from collections.abc import Mapping
 
 from bg_test_data import BgTestData
 
 from magento_qa.models.address import Address
+from magento_qa.models.customer import NewCustomer
 
 _bg = BgTestData()
 
@@ -13,6 +15,22 @@ _bg = BgTestData()
 def unique_email(prefix: str = "qa") -> str:
     """An address no other test uses, so emails can be found by recipient in parallel runs."""
     return f"{prefix}+{uuid.uuid4().hex[:12]}@example.com"
+
+
+def strong_password() -> str:
+    """Passes Magento's default rules: at least 8 characters from at least 3 classes."""
+    return f"Qa!{secrets.token_hex(6)}"
+
+
+def new_customer(*, email: str | None = None) -> NewCustomer:
+    """A shopper about to register: Bulgarian name, unique email, strong password."""
+    name = _bg.name()
+    return NewCustomer(
+        email=email or unique_email(),
+        firstname=name["first_name"],
+        lastname=name["last_name"],
+        password=strong_password(),
+    )
 
 
 def bulgarian_address(

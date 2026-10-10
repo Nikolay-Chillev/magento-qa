@@ -7,6 +7,7 @@ store or Mailpit first waits for the environment, while unit tests never do.
 import pytest
 
 from magento_qa.api.admin import AdminClient
+from magento_qa.api.customers import CustomerClient
 from magento_qa.api.directory import DirectoryClient
 from magento_qa.api.http import HttpClient
 from magento_qa.config import Settings, get_settings
@@ -41,6 +42,12 @@ def admin(settings: Settings, environment_ready: None) -> AdminClient:
     """Back-office view of the store. Has its own session, so no cookies mix with shoppers."""
     http = HttpClient(str(settings.base_url), timeout=settings.request_timeout)
     return AdminClient(http, username=settings.admin_username, password=settings.admin_password)
+
+
+@pytest.fixture(scope="session")
+def customers(store_http: HttpClient) -> CustomerClient:
+    """Registration and sign-in. Tokens are passed per call, so one client serves every test."""
+    return CustomerClient(store_http)
 
 
 @pytest.fixture(scope="session")
