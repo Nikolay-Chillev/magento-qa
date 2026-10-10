@@ -92,7 +92,7 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] UI: guest checkout with a Bulgarian address, verified in the back office and by email
 - [x] UI: apply and cancel a coupon in the cart
 - [x] UI: register, sign in and sign out
-- [ ] UI journeys: catalog, mobile
+- [x] UI: search, category filters and sorting, product options to the mini-cart, on desktop and phone
 - [x] Allure report on GitHub Pages, with history across runs
 - [ ] Nightly cross-browser run
 - [ ] Accessibility (axe-core), performance smoke (k6)
