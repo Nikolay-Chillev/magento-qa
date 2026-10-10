@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from urllib.parse import unquote
 
 import allure
-from playwright.sync_api import BrowserContext
+from playwright.sync_api import APIResponse, BrowserContext
 
 from magento_qa.models.cart import VariantOption
 
@@ -45,15 +45,27 @@ def seed_cart(context: BrowserContext, base_url: str, items: Sequence[SeedItem])
             }
             for option in item.options:
                 form[f"super_attribute[{option.option_id}]"] = str(option.option_value)
-            context.request.post(f"{base_url}checkout/cart/add", form=form, max_redirects=0)
+            response = context.request.post(
+                f"{base_url}checkout/cart/add", form=form, max_redirects=0
+            )
+            _keep_session(context, base_url, response)
             _raise_unless_added(context)
-    # Magento sets the session cookie for the domain "127.0.0.1". Firefox does not pass
-    # such a cookie from the request API on to its pages, so they would start a new,
-    # empty session; a host-only copy reaches the pages in every engine.
-    session = next(cookie for cookie in context.cookies() if cookie["name"] == "PHPSESSID")
-    context.add_cookies([{"name": "PHPSESSID", "value": session["value"], "url": base_url}])
     # Any non-numeric value: Luma parses the cookie as JSON and ignores numbers.
     context.add_cookies([{"name": "section_data_clean", "value": "seeded", "url": base_url}])
+
+
+def _keep_session(context: BrowserContext, base_url: str, response: APIResponse) -> None:
+    """Store the session cookie of ``response`` so later requests and pages share it.
+
+    Magento sets it for the domain "127.0.0.1". Firefox drops such a cookie when it
+    comes from the request API, so the next request and the test's pages would start
+    new, empty sessions; a host-only cookie with the same value works in every engine.
+    """
+    for header in response.headers_array:
+        name, _, rest = header["value"].partition("=")
+        if header["name"].lower() == "set-cookie" and name.strip() == "PHPSESSID":
+            session_id = rest.split(";", 1)[0]
+            context.add_cookies([{"name": "PHPSESSID", "value": session_id, "url": base_url}])
 
 
 def _raise_unless_added(context: BrowserContext) -> None:
