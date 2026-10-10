@@ -32,8 +32,13 @@ class GraphQLClient:
         self._headers = {"Authorization": f"Bearer {token}"} if token else {}
 
     def with_token(self, token: str) -> "GraphQLClient":
-        """The same client acting as the customer the token belongs to."""
-        return GraphQLClient(self.http, token=token)
+        """A client acting as the customer the token belongs to, with its own cookies.
+
+        Magento keeps a session for GraphQL: a call with a token returns a session cookie
+        that signs later calls in even without the token (finding #65). Separate cookies
+        keep that session away from the anonymous client.
+        """
+        return GraphQLClient(self.http.fresh(), token=token)
 
     def execute(self, query: str, variables: dict[str, Any] | None = None) -> dict[str, Any]:
         """POST a query or mutation and return its ``data``; raise GraphQLError on errors.

@@ -5,6 +5,7 @@ fall back to Magento's ``data-`` attributes; layout classes are the last resort.
 """
 
 import re
+from collections.abc import Callable
 from decimal import Decimal
 
 import allure
@@ -379,29 +380,35 @@ class ProductListPage(StorePage):
             target = (
                 swatch if swatch.count() else section.get_by_role("link").filter(has_text=option)
             )
-            target.click()
-            self.page.wait_for_load_state()
-            wait_for_luma(self.page)
+            self._reload_by(target.click)
         return self
 
     def clear_filters(self) -> "ProductListPage":
         with allure.step("Clear all filters"):
-            self.page.get_by_role("link", name="Clear All").click()
-            self.page.wait_for_load_state()
-            wait_for_luma(self.page)
+            self._reload_by(self.page.get_by_role("link", name="Clear All").click)
         return self
 
     def sort_by(self, option: str, *, descending: bool = False) -> "ProductListPage":
         """Sort by a "Sort By" option, e.g. ``sort_by("Price", descending=True)``."""
         with allure.step(f"Sort by {option}{' descending' if descending else ''}"):
-            self.page.get_by_label("Sort By").first.select_option(label=option)
-            self.page.wait_for_load_state()
-            wait_for_luma(self.page)
+            sorter = self.page.get_by_label("Sort By").first
+            self._reload_by(lambda: sorter.select_option(label=option))
             if descending:
-                self.page.get_by_role("link", name="Set Descending Direction").first.click()
-                self.page.wait_for_load_state()
-                wait_for_luma(self.page)
+                self._reload_by(
+                    self.page.get_by_role("link", name="Set Descending Direction").first.click
+                )
         return self
+
+    def _reload_by(self, action: Callable[[], object]) -> None:
+        """Run an action that reloads the list with new parameters, and wait for the new page.
+
+        Luma changes the address from a script, so the old page stays loaded for a moment;
+        waiting only for the load state could act on the old list.
+        """
+        before = self.page.url
+        action()
+        self.page.wait_for_url(lambda url: url != before)
+        wait_for_luma(self.page)
 
     def product(self, name: str) -> Locator:
         return self.products.filter(has=self.page.get_by_role("link", name=name, exact=True))

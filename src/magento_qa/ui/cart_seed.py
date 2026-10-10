@@ -1,8 +1,10 @@
 """Fill a shopper's cart from the test, without clicking through the catalog.
 
-Products are added with the storefront's own add-to-cart endpoint inside the
-browser context, so the cart belongs to that browser session. This must happen
-before the first page load:
+Products are added with the storefront's own add-to-cart endpoint, called from
+the page itself, so the cart belongs to that browser's session and every engine
+stores the session cookie its own way. (Requests from Playwright's API context
+share cookies with the page too, but Firefox then drops the session cookie for an
+IP-address host.) This must happen before the test opens its first store page:
 
 * the form key normally comes from a cookie that Luma's JavaScript creates; the
   test sets its own, which Magento accepts the same way;
@@ -16,7 +18,7 @@ from dataclasses import dataclass, field
 from urllib.parse import unquote
 
 import allure
-from playwright.sync_api import BrowserContext
+from playwright.sync_api import BrowserContext, Page
 
 from magento_qa.models.cart import VariantOption
 
@@ -32,20 +34,25 @@ class CartSeedError(AssertionError):
     pass
 
 
-def seed_cart(context: BrowserContext, base_url: str, items: Sequence[SeedItem]) -> None:
-    """Add ``items`` to the cart of the browser ``context`` before it opens any page."""
+# Posts a form from the page; the redirect Magento answers with is not followed.
+POST_FORM = """async ({url, form}) => {
+    await fetch(url, {method: "POST", body: new URLSearchParams(form), redirect: "manual"});
+}"""
+
+
+def seed_cart(page: Page, base_url: str, items: Sequence[SeedItem]) -> None:
+    """Add ``items`` to the cart of ``page``'s browser before the test opens a store page."""
+    context = page.context
+    # A plain-text page of the store, so the requests below come from its origin.
+    page.goto(f"{base_url}robots.txt")
     form_key = secrets.token_hex(8)
     context.add_cookies([{"name": "form_key", "value": form_key, "url": base_url}])
     for item in items:
         with allure.step(f"Seed cart: product {item.product_id} x {item.qty}"):
-            form: dict[str, str | float | bool] = {
-                "product": str(item.product_id),
-                "qty": str(item.qty),
-                "form_key": form_key,
-            }
+            form = {"product": str(item.product_id), "qty": str(item.qty), "form_key": form_key}
             for option in item.options:
                 form[f"super_attribute[{option.option_id}]"] = str(option.option_value)
-            context.request.post(f"{base_url}checkout/cart/add", form=form, max_redirects=0)
+            page.evaluate(POST_FORM, {"url": f"{base_url}checkout/cart/add", "form": form})
             _raise_unless_added(context)
     # Any non-numeric value: Luma parses the cookie as JSON and ignores numbers.
     context.add_cookies([{"name": "section_data_clean", "value": "seeded", "url": base_url}])

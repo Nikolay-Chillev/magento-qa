@@ -1,6 +1,7 @@
 # Magento QA
 
 [![CI](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/ci.yml/badge.svg)](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/ci.yml)
+[![Nightly](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/nightly.yml/badge.svg)](https://github.com/Nikolay-Chillev/magento-qa/actions/workflows/nightly.yml)
 [![Allure report](https://img.shields.io/badge/Allure-report-orange)](https://nikolay-chillev.github.io/magento-qa/)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue)](pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -13,8 +14,8 @@ Magento (Adobe Commerce Open Source) powers many large European online shops, so
 
 | Service | Image | URL |
 |---|---|---|
-| Magento 2.4.9 + Luma sample data | [magento2-in-a-box](https://github.com/controlaltdelete-nl/magento2-in-a-box) | http://localhost:8080 |
-| Magento admin | | http://localhost:8080/admin |
+| Magento 2.4.9 + Luma sample data | [magento2-in-a-box](https://github.com/controlaltdelete-nl/magento2-in-a-box) | http://127.0.0.1:8080 |
+| Magento admin | | http://127.0.0.1:8080/admin |
 | Mailpit (catches all outgoing email) | [axllent/mailpit](https://github.com/axllent/mailpit) | http://localhost:8025 |
 
 Admin credentials are the defaults documented in the [magento2-in-a-box README](https://github.com/controlaltdelete-nl/magento2-in-a-box#readme).
@@ -43,6 +44,7 @@ The Magento image is pinned by digest, so every run uses exactly the same build.
 
 | Setting | Default | Here | Why |
 |---|---|---|---|
+| Store URL | | `http://127.0.0.1:8080/` rather than `localhost` | Magento sets the cookie domain to the store's host, and WebKit refuses cookies for the single-label name `localhost`, so nobody could sign in there |
 | `system/smtp/*` | sendmail | SMTP to `mailpit:1025` | Every outgoing email lands in Mailpit, where tests can assert on it |
 | `admin/security/password_lifetime` | 90 days | 0 (never expires) | The image's admin password would otherwise force a change 90 days after the image was built |
 | `customer/password/password_reset_protection_type` | By IP and email | By email | All test traffic comes from one IP, so IP-based throttling would allow one reset per 10 minutes for the whole suite |
@@ -94,7 +96,7 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] UI: register, sign in and sign out
 - [x] UI: search, category filters and sorting, product options to the mini-cart, on desktop and phone
 - [x] Allure report on GitHub Pages, with history across runs
-- [ ] Nightly cross-browser run
+- [x] Nightly run: full suite, UI tests in Chromium, Firefox and WebKit
 - [ ] Accessibility (axe-core), performance smoke (k6)
 
 ## Notes

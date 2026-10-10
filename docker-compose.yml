@@ -6,7 +6,9 @@ services:
     ports:
       - "8080:80"
     environment:
-      - URL=http://localhost:8080/
+      # An IP address rather than "localhost": Magento sets the cookie domain to the
+      # store's host, and WebKit refuses cookies for the single-label name "localhost".
+      - URL=http://127.0.0.1:8080/
     volumes:
       - ./docker/magento/custom-entrypoint.sh:/data/custom-entrypoint.sh:ro
     healthcheck:

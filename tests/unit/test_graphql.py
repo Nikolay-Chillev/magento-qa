@@ -31,6 +31,9 @@ class ScriptedHttp(HttpClient):
         self.headers = kwargs.get("headers", {})
         return self.answer
 
+    def fresh(self) -> "ScriptedHttp":
+        return self
+
 
 AUTHORIZATION_ERROR = {
     "message": "The current customer isn't authorized.",
@@ -79,3 +82,14 @@ def test_token_is_sent_only_by_the_client_that_has_it() -> None:
 
     anonymous.execute("{ products }")
     assert http.headers == {}
+
+
+def test_a_token_client_has_its_own_cookies() -> None:
+    http = HttpClient("http://shop.test/", timeout=1)
+    http.session.cookies.set("PHPSESSID", "anonymous")
+
+    customer = GraphQLClient(http).with_token("abc")
+
+    assert customer.http is not http
+    assert customer.http.base_url == http.base_url
+    assert not customer.http.session.cookies

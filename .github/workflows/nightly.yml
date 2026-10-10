@@ -1,0 +1,111 @@
+name: Nightly
+
+# The full suite every night, with the UI tests in all three browser engines.
+# Pull requests run Chromium only, so they stay fast.
+on:
+  schedule:
+    - cron: "0 2 * * *"  # 02:00 UTC, 05:00 in Sofia
+  workflow_dispatch:
+  # A change to this workflow runs it in its own pull request.
+  pull_request:
+    paths:
+      - .github/workflows/nightly.yml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests in ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      # A failure in one browser must not cancel the others.
+      fail-fast: false
+      matrix:
+        include:
+          - browser: chromium
+            label: Chromium
+            tests: ""  # the full suite: API, email and UI
+          - browser: firefox
+            label: Firefox
+            tests: -m ui
+          - browser: webkit
+            label: WebKit
+            tests: -m ui
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          enable-cache: true
+
+      - name: Start Magento and Mailpit
+        run: docker compose up --detach --wait --wait-timeout 420
+
+      - run: uv sync --locked
+
+      - name: Install ${{ matrix.label }}
+        run: uv run playwright install --with-deps ${{ matrix.browser }}
+
+      # Three workers: the store's PHP-FPM pool serves four requests at a time.
+      - name: Run tests
+        run: >-
+          uv run pytest -n 3 ${{ matrix.tests }} --browser ${{ matrix.browser }}
+          --alluredir=allure-results --junitxml=junit.xml
+
+      - name: Summarise the results
+        if: ${{ !cancelled() }}
+        run: uv run python -m magento_qa.reporting junit.xml "${{ matrix.label }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Allure results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: allure-results
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Collect container logs
+        if: ${{ failure() }}
+        run: docker compose logs --no-color --timestamps > compose.log
+
+      - name: Upload container logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: compose-logs-${{ matrix.browser }}
+          path: compose.log
+          retention-days: 14
+
+  # One report for all three browsers: pytest-playwright adds the browser to each UI
+  # test's parameters, so the same test in two browsers stays two results.
+  report:
+    name: Build Allure report
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: allure-results-*
+          merge-multiple: true
+          path: allure-results
+
+      - name: Generate report
+        run: |
+          mkdir -p allure-history
+          npx --yes allure@3.20.0 generate allure-results --config allurerc.mjs
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: allure-report-nightly
+          path: allure-report
+          retention-days: 14

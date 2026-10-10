@@ -21,6 +21,7 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#57](https://github.com/Nikolay-Chillev/magento-qa/issues/57) | Password reset requests reveal which emails have an account | Minor | Product | Open, known upstream as [magento/magento2#37886](https://github.com/magento/magento2/issues/37886) (GraphQL), covered by an `xfail` test |
 | [#58](https://github.com/Nikolay-Chillev/magento-qa/issues/58) | API tokens stay valid after a password reset | Major | Product | Open, covered by an `xfail` test |
 | [#59](https://github.com/Nikolay-Chillev/magento-qa/issues/59) | A browser signed in before a password reset gets an error page | Minor | Product | Open, known upstream as [magento/magento2#41439](https://github.com/magento/magento2/issues/41439), covered by an `xfail` test |
+| [#65](https://github.com/Nikolay-Chillev/magento-qa/issues/65) | GraphQL calls with a token also sign in a cookie session | Minor | Configuration | Open |
 
 ## Details
 
@@ -89,6 +90,10 @@ A password reset, or a password change while signed in, ends the customer's brow
 ### #59 A browser signed in before a password reset gets an error page
 
 The next request from a browser that was signed in before the reset fails with HTTP 500 (`SessionException: The session has expired, please login again.`) instead of redirecting to the sign-in page; the request after that works. Thrown by `CutoffValidator` while the session starts. Reported upstream with a fix proposed in [magento/magento2#41440](https://github.com/magento/magento2/pull/41440). The cutoff is compared in whole seconds, so a session from the same second as the reset survives it; the test waits for the next second before resetting.
+
+### #65 GraphQL calls with a token also sign in a cookie session
+
+A GraphQL request with a customer token returns a `PHPSESSID` cookie whose session is signed in as that customer; later GraphQL requests that send only the cookie act as the customer too. REST does not accept the cookie. Magento keeps GraphQL sessions by default for storefronts that mix Luma pages and GraphQL. **Recommendation:** for a headless storefront that uses tokens only, set `graphql/session/disable` to 1, so the token is the only way in. Noticed when the tests' shared HTTP client started keeping cookies; customer GraphQL clients now have their own cookie jar.
 
 ## To investigate
 
