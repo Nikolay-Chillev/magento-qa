@@ -84,7 +84,8 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] API: coupon usage limits, including a single-use code held in two carts
 - [x] API: orders to all 28 Bulgarian oblasts, required address fields, 20% VAT
 - [x] API: customer registration and sign-in, password rules, welcome email
-- [ ] API: account lockout, password reset, access control, GraphQL
+- [x] API + UI: brute-force protection, token lockout and sign-in CAPTCHA
+- [ ] API: password reset, access control, GraphQL
 - [x] UI foundation (Playwright for Python): page objects, cart seeding, screenshot and trace on failure
 - [x] UI: guest checkout with a Bulgarian address, verified in the back office and by email
 - [x] UI: apply and cancel a coupon in the cart
