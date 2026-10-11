@@ -38,7 +38,7 @@ Each risk gets a priority from its business impact. Priority decides the order o
 | Search and category browsing broken | Customers cannot find products | **P2** | UI: home page → product page smoke ✅ · GraphQL: search with category and price filters, sorting, paging ✅ · UI: header search, size, colour and price filters, sorting, product options to the mini-cart, also on a phone-sized screen ✅ |
 | Headless storefronts break (GraphQL) | Mobile apps and PWA frontends stop selling | **P2** | API: GraphQL cart (add, update, remove, products that cannot be added), error categories, private customer carts ✅ |
 | Accessibility barriers | Excluded customers; non-compliance with the European Accessibility Act | **P3** | axe-core scans (WCAG 2.1 AA) of eight key page states against a baseline of known violations ✅ ([#75](https://github.com/Nikolay-Chillev/magento-qa/issues/75), [#76](https://github.com/Nikolay-Chillev/magento-qa/issues/76), [#77](https://github.com/Nikolay-Chillev/magento-qa/issues/77) open) |
-| Slow pages or API under load | Lower conversion | **P3** | k6 smoke (planned) |
+| Slow pages or API under load | Lower conversion | **P3** | k6 smoke of the shopper's path (pages, GraphQL search, cart), nightly, with limits at about five times the 95th percentile measured on the CI runners ✅ |
 
 ## Test levels
 
@@ -85,7 +85,7 @@ Known limitations of the environment:
 | When | What runs | Where |
 |---|---|---|
 | Every pull request and push to `main` | Lint, type checks, all tests with three parallel workers against a fresh store, summarised in the required `CI passed` check (tests are skipped for documentation-only changes) | GitHub Actions |
-| Nightly, 02:00 UTC | All tests in Chromium; UI tests also in Firefox and WebKit, each browser in its own job. A summary per browser on the run page, one Allure report for all three as a run artifact | GitHub Actions |
+| Nightly, 02:00 UTC | All tests in Chromium; UI tests also in Firefox and WebKit, each browser in its own job; a k6 performance smoke test on its own store. A summary per browser on the run page, one Allure report for all three as a run artifact | GitHub Actions |
 | Locally | `./scripts/start.sh`, then `uv run python -m pytest` | Developer machine |
 
 ## Merge and release criteria
