@@ -98,7 +98,8 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] UI: search, category filters and sorting, product options to the mini-cart, on desktop and phone
 - [x] Allure report on GitHub Pages, with history across runs
 - [x] Nightly run: full suite, UI tests in Chromium, Firefox and WebKit
-- [ ] Accessibility (axe-core), performance smoke (k6)
+- [x] Accessibility: axe-core scans of key pages against a baseline of known violations
+- [ ] Performance smoke (k6)
 
 ## Notes
 
