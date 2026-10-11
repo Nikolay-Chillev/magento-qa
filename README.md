@@ -102,6 +102,10 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] Accessibility: axe-core scans of key pages against a baseline of known violations
 - [x] Performance smoke (k6), nightly
 
+Possible next steps:
+
+- Visual regression of key pages, once the theme itself changes, for example in a move from Luma to Hyvä ([#70](https://github.com/Nikolay-Chillev/magento-qa/issues/70) explains why it is not done now)
+
 ## Notes
 
 - Windows reserves several TCP port ranges for Hyper-V. If a port is refused, list the reserved ranges with `netsh interface ipv4 show excludedportrange protocol=tcp` and pick another one. This project uses 8080 and 8025.
