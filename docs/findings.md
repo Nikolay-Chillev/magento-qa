@@ -22,6 +22,9 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#58](https://github.com/Nikolay-Chillev/magento-qa/issues/58) | API tokens stay valid after a password reset | Major | Product | Open, covered by an `xfail` test |
 | [#59](https://github.com/Nikolay-Chillev/magento-qa/issues/59) | A browser signed in before a password reset gets an error page | Minor | Product | Open, known upstream as [magento/magento2#41439](https://github.com/magento/magento2/issues/41439), covered by an `xfail` test |
 | [#65](https://github.com/Nikolay-Chillev/magento-qa/issues/65) | GraphQL calls with a token also sign in a cookie session | Minor | Configuration | Open |
+| [#75](https://github.com/Nikolay-Chillev/magento-qa/issues/75) | The main menu is hidden from screen readers | Major | Product | Open, in the accessibility baseline |
+| [#76](https://github.com/Nikolay-Chillev/magento-qa/issues/76) | Error messages fail the WCAG contrast minimum | Minor | Product | Open, in the accessibility baseline |
+| [#77](https://github.com/Nikolay-Chillev/magento-qa/issues/77) | Invalid ARIA structure on product tabs, checkout steps and the CAPTCHA field | Minor | Product | Open, in the accessibility baseline |
 
 ## Details
 
@@ -95,16 +98,27 @@ The next request from a browser that was signed in before the reset fails with H
 
 A GraphQL request with a customer token returns a `PHPSESSID` cookie whose session is signed in as that customer; later GraphQL requests that send only the cookie act as the customer too. REST does not accept the cookie. Magento keeps GraphQL sessions by default for storefronts that mix Luma pages and GraphQL. **Recommendation:** for a headless storefront that uses tokens only, set `graphql/session/disable` to 1, so the token is the only way in. Noticed when the tests' shared HTTP client started keeping cookies; customer GraphQL clients now have their own cookie jar.
 
+### #75 The main menu is hidden from screen readers
+
+The category menu (`#store.menu`) is rendered with `aria-hidden="true"` and `style="display: none;"`; the stylesheet shows it anyway, and nothing removes `aria-hidden` (the tabs script is disabled at desktop width and leaves it `true` on a phone). Screen readers skip the store's main navigation while keyboard focus still reaches its links (axe: `aria-hidden-focus` on every page with the header). The attributes come from `Magento_Theme::html/sections.phtml`, added by a mobile-menu fix (commit `89a5f7ee3d`, AC-15166) and still in `2.4-develop`. **Recommendation:** set `aria-hidden` from the script that opens and closes the panel, not in the template.
+
+### #76 Error messages fail the WCAG contrast minimum
+
+Every error message (`.message-error`) is red `#e02b27` on pink `#fae5e5`: 3.82:1 for 13 px text, where WCAG 2.1 AA asks for 4.5:1. Seen on the sign-in error and on an invalid coupon in the cart. Luma theme styling.
+
+### #77 Invalid ARIA structure on product tabs, checkout steps and the CAPTCHA field
+
+The product page's tab list contains its panels and each tab contains a link; the checkout steps list has children with `role=presentation`; the sign-in CAPTCHA field's wrapper has `role="user_login"`, which is not an ARIA role, and the hidden sign-in pop-up repeats the field's id, so the visible field has no accessible name.
+
 ## To investigate
 
-- **Password label on the sign-in page.** In 2.4.9 the label says `for="pass"` while the field's id is `password`, so clicking the label does not focus the field and the field's accessible name comes only from its `title`. Already fixed in Magento's `2.4-develop` branch; the accessibility checks will show whether 2.4.9 needs a note.
-- **CAPTCHA field on the sign-in page.** The hidden sign-in pop-up repeats the field's id (`captcha_user_login`), so the visible field's label points to the pop-up's copy and the field has no accessible name. The wrapper also carries `role="user_login"`, which is not an ARIA role. To be confirmed with the accessibility checks.
 - **CAPTCHA count per IP address.** Besides three failures per email, Magento asks for a CAPTCHA after 1,000 failures from one IP address, which is meant to catch attacks spread over many emails. Any successful storefront sign-in deletes that IP's count (`Captcha\Model\ResourceModel\Log::deleteUserAttempts`), so an attacker who signs in to an account of their own from time to time keeps the count low. Read in the code, not reproduced: it takes 1,000 failed sign-ins.
-- **Filters on category pages.** Each filter title's accessible name ends with a glyph from Luma's icon font, so screen readers may announce an unknown character after "Size" or "Price". The size and colour swatches are links of 0×0 pixels wrapped around the visible swatch, so a keyboard user's focus outline may not show. To be confirmed with the accessibility checks.
-- **Discount code section on the cart page.** The "Apply Discount Code" title expands the form, but its open state is only a CSS class: the title has no `aria-expanded` and is not exposed as a button. Screen-reader users may not know the section opened. To be confirmed with the accessibility checks.
 
 ## Checked, not a finding
 
+- **Password label on the sign-in page.** In 2.4.9 the label says `for="pass"` while the field's id is `password`, so clicking the label does not focus the field. The field still has an accessible name from its `title`, axe does not flag it, and it is already fixed in Magento's `2.4-develop` branch.
+- **Discount code section on the cart page.** The "Apply Discount Code" title looked like a CSS-only toggle, but its parent is a `role="tab"` element with `tabindex="0"` and `aria-expanded`, which Enter opens and which switches to `true`. Keyboard and screen-reader users get the state.
+- **Filters on category pages.** Each filter title's accessible name ends with `U+E622`, a private-use glyph from Luma's icon font, which most screen readers skip. The size and colour swatch links are 0×0 pixels, but the visible swatch gets a focus ring when its link is focused.
 - **GraphQL paging far past the end.** A page after the last one is refused ("currentPage value 3 specified is greater than the 2 page(s) available."), but a page that starts beyond the 10,000th result returns no items and `total_count: 0` instead. That is the search engine's result window (`index.max_result_window`), not something a shopper can reach in this catalog.
 - **Another customer's address through the profile.** Saving your profile (`PUT /V1/customers/me`) with another customer's address id is refused and their address stays as it was, but the error says "A customer with the same email address already exists in an associated website.", which points API clients in the wrong direction. Covered by `tests/api/test_access_control.py`.
 - **API lockout and the storefront.** After six wrong passwords the REST token endpoint refuses even the right password for 30 minutes, but the same customer can still sign in on the storefront. Each channel has its own protection (lockout for the API, CAPTCHA after three failures on the storefront), so this is by design; covered by `tests/api/test_account_lockout.py` and `tests/ui/test_login_captcha.py`.
