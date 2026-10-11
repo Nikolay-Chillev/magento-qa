@@ -22,7 +22,7 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#58](https://github.com/Nikolay-Chillev/magento-qa/issues/58) | API tokens stay valid after a password reset | Major | Product | Open, covered by an `xfail` test |
 | [#59](https://github.com/Nikolay-Chillev/magento-qa/issues/59) | A browser signed in before a password reset gets an error page | Minor | Product | Open, known upstream as [magento/magento2#41439](https://github.com/magento/magento2/issues/41439), covered by an `xfail` test |
 | [#65](https://github.com/Nikolay-Chillev/magento-qa/issues/65) | GraphQL calls with a token also sign in a cookie session | Minor | Configuration | Open |
-| [#75](https://github.com/Nikolay-Chillev/magento-qa/issues/75) | The main menu is hidden from screen readers | Major | Product | Open, in the accessibility baseline |
+| [#75](https://github.com/Nikolay-Chillev/magento-qa/issues/75) | The main menu is hidden from screen readers | Major | Product | Open, reported as [magento/magento2#41512](https://github.com/magento/magento2/issues/41512), in the accessibility baseline |
 | [#76](https://github.com/Nikolay-Chillev/magento-qa/issues/76) | Error messages fail the WCAG contrast minimum | Minor | Product | Open, in the accessibility baseline |
 | [#77](https://github.com/Nikolay-Chillev/magento-qa/issues/77) | Invalid ARIA structure on product tabs, checkout steps and the CAPTCHA field | Minor | Product | Open, in the accessibility baseline |
 
