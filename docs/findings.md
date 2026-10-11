@@ -100,7 +100,7 @@ A GraphQL request with a customer token returns a `PHPSESSID` cookie whose sessi
 
 ### #75 The main menu is hidden from screen readers
 
-The category menu (`#store.menu`) is rendered with `aria-hidden="true"` and `style="display: none;"`; the stylesheet shows it anyway, and nothing removes `aria-hidden` (the tabs script is disabled at desktop width and leaves it `true` on a phone). Screen readers skip the store's main navigation while keyboard focus still reaches its links (axe: `aria-hidden-focus` on every page with the header). The attributes come from `Magento_Theme::html/sections.phtml`, added by a mobile-menu fix (commit `89a5f7ee3d`, AC-15166) and still in `2.4-develop`. **Recommendation:** set `aria-hidden` from the script that opens and closes the panel, not in the template.
+The category menu (`#store.menu`) is rendered with `aria-hidden="true"` and `style="display: none;"`; the stylesheet shows it anyway, and the attribute is never removed, at desktop or phone width. Chromium leaves the category links out of the accessibility tree (`ariaHiddenSubtree`), while the menu list still takes keyboard focus, so a screen reader user lands on an element that is not announced (axe: `aria-hidden-focus` on every page with the header). Removing only `aria-hidden` brings all six categories back. **Root cause:** two 2.4.9 changes combine. PR #39164 removed the panels' `data-role="content"`, so `mage/collapsible` no longer finds the panels it should toggle. A later mobile-menu fix (commit `89a5f7ee3d`, AC-15166) added `aria-hidden="true"` to the panels in `Magento_Theme::html/sections.phtml`. Both are still in `2.4-develop`.
 
 ### #76 Error messages fail the WCAG contrast minimum
 
