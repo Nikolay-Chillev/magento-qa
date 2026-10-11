@@ -32,3 +32,17 @@ services:
     container_name: mailpit
     ports:
       - "8025:8025"
+
+  # Performance smoke test, only on demand: docker compose run --rm k6
+  # It shares the Magento container's network, see perf/smoke.js.
+  k6:
+    image: grafana/k6:2.3.0@sha256:9c2dee7f8ed74d317e4027c06a10f169b625638189de8d4555d0b3486a5aeb34
+    profiles: [perf]
+    network_mode: service:magento
+    depends_on:
+      magento:
+        condition: service_healthy
+    volumes:
+      - ./perf:/perf
+    working_dir: /perf
+    command: run --quiet smoke.js

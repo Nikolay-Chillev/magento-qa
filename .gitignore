@@ -31,3 +31,6 @@ Thumbs.db
 
 # Allure report history restored in CI
 allure-history/
+
+# k6 summary written by perf/smoke.js
+perf/summary.md
