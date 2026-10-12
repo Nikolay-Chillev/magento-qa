@@ -33,7 +33,8 @@ services:
     ports:
       - "8025:8025"
 
-  # Performance smoke test, only on demand: docker compose run --rm k6
+  # Performance smoke test, only on demand, as your own user so k6 can write
+  # perf/summary.md: docker compose run --rm --user "$(id -u):$(id -g)" k6
   # It shares the Magento container's network, see perf/smoke.js.
   k6:
     image: grafana/k6:2.3.0@sha256:9c2dee7f8ed74d317e4027c06a10f169b625638189de8d4555d0b3486a5aeb34
