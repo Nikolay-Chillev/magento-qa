@@ -1,8 +1,9 @@
 """Accessibility of the key pages, scanned with axe-core (WCAG 2.1 A and AA).
 
-Luma has known violations, so each page is compared with a baseline: the rules axe
-reports today, each explained by a finding. A new rule fails the test; so does a
-rule that disappears, so the baseline is only ever shortened on purpose.
+Luma has known violations, so each page is compared with a baseline: the rule and
+element pairs axe reports today, each explained by a finding. A new pair fails the
+test, even for a known rule on another element; so does a pair that disappears, so
+the baseline is only ever shortened on purpose.
 
 Scanned in Chromium only: axe runs the same rules on the same page in every engine.
 """
@@ -35,25 +36,28 @@ MENU_HIDDEN = 75  # main menu hidden from screen readers
 ERROR_CONTRAST = 76  # error messages below 4.5:1
 ARIA_STRUCTURE = 77  # product tabs, checkout steps, CAPTCHA field
 
-# Rules reported with axe-core 4.12.1 on Magento 2.4.9 with Luma, and the finding
-# that explains each.
-KNOWN: dict[str, dict[str, int]] = {
-    "home": {"aria-hidden-focus": MENU_HIDDEN},
-    "category": {"aria-hidden-focus": MENU_HIDDEN},
+# Rule and element pairs reported with axe-core 4.12.1 on Magento 2.4.9 with Luma,
+# and the finding that explains each. Elements are axe's selectors.
+MENU = ("aria-hidden-focus", r"#store\.menu")
+KNOWN: dict[str, dict[tuple[str, str], int]] = {
+    "home": {MENU: MENU_HIDDEN},
+    "category": {MENU: MENU_HIDDEN},
     "product": {
-        "aria-hidden-focus": MENU_HIDDEN,
-        "aria-required-children": ARIA_STRUCTURE,
-        "nested-interactive": ARIA_STRUCTURE,
+        MENU: MENU_HIDDEN,
+        ("aria-required-children", '.mage-tabs-disabled.items[role="tablist"]'): ARIA_STRUCTURE,
+        ("nested-interactive", "#tab-label-description"): ARIA_STRUCTURE,
+        ("nested-interactive", "#tab-label-additional"): ARIA_STRUCTURE,
+        ("nested-interactive", "#tab-label-reviews"): ARIA_STRUCTURE,
     },
-    "cart": {"aria-hidden-focus": MENU_HIDDEN},
-    "checkout": {"list": ARIA_STRUCTURE},
-    "sign-in": {"aria-hidden-focus": MENU_HIDDEN},
+    "cart": {MENU: MENU_HIDDEN},
+    "checkout": {("list", "#checkoutSteps"): ARIA_STRUCTURE},
+    "sign-in": {MENU: MENU_HIDDEN},
     "sign-in after failed attempts": {
-        "aria-hidden-focus": MENU_HIDDEN,
-        "aria-roles": ARIA_STRUCTURE,
-        "color-contrast": ERROR_CONTRAST,
+        MENU: MENU_HIDDEN,
+        ("aria-roles", 'div[role="user_login"]'): ARIA_STRUCTURE,
+        ("color-contrast", ".message-error > div"): ERROR_CONTRAST,
     },
-    "registration": {"aria-hidden-focus": MENU_HIDDEN},
+    "registration": {MENU: MENU_HIDDEN},
 }
 
 JACKETS = "women/tops-women/jackets-women.html"
@@ -64,11 +68,23 @@ Seed = Callable[[Sequence[SeedItem]], None]
 
 
 def assert_only_known_violations(page: Page, name: str) -> None:
-    found = scan(page)
+    found = {
+        (violation.rule, target): violation
+        for violation in scan(page).values()
+        for target in violation.targets
+    }
     known = KNOWN[name]
 
-    new = [violation.describe() for rule, violation in found.items() if rule not in known]
-    gone = [f"{rule} (finding #{known[rule]})" for rule in known if rule not in found]
+    new = [
+        f"{rule} at {target}: {violation.help}"
+        for (rule, target), violation in found.items()
+        if (rule, target) not in known
+    ]
+    gone = [
+        f"{rule} at {target} (finding #{finding})"
+        for (rule, target), finding in known.items()
+        if (rule, target) not in found
+    ]
     assert not new, f"New accessibility violations on the {name} page: {new}"
     assert not gone, f"No longer reported on the {name} page, remove from KNOWN: {gone}"
 
