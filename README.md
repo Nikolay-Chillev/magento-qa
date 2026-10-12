@@ -64,7 +64,7 @@ uv run python -m pytest -m smoke         # check that the environment works
 uv run python -m pytest                  # run all tests
 uv run python -m pre_commit install      # lint, format and type-check on every commit
 uv run python -m playwright install chromium   # browser for the UI tests
-docker compose run --rm k6                     # performance smoke test, about a minute
+docker compose run --rm --user "$(id -u):$(id -g)" k6   # performance smoke test, about a minute
 ```
 
 UI tests run headless in Chromium. Add `--headed --slowmo 300` to watch them, or `--browser firefox` / `--browser webkit` for other engines. When a UI test fails, its Allure result carries a full-page screenshot and a Playwright trace (`playwright-trace.zip`); open the trace with `uv run python -m playwright show-trace <file>` or at [trace.playwright.dev](https://trace.playwright.dev) to step through every action with DOM snapshots and network calls.

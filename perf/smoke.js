@@ -2,7 +2,7 @@
 // for one minute, far below the four PHP workers of the container. It watches for
 // changes that make key pages or API calls much slower; it is not a load test.
 //
-//   docker compose run --rm k6
+//   docker compose run --rm --user "$(id -u):$(id -g)" k6
 //
 // k6 runs in the Magento container's network, so requests go to port 80 inside it
 // with the Host header of the store's base URL.
