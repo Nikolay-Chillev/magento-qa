@@ -13,7 +13,7 @@ from playwright.sync_api import Locator, Page, expect
 
 from magento_qa.models.address import Address
 from magento_qa.models.customer import NewCustomer
-from magento_qa.ui.components import Header, wait_for_luma
+from magento_qa.ui.components import Header, submit, wait_for_luma
 
 
 class StorePage:
@@ -211,18 +211,14 @@ class CartPage(StorePage):
         with allure.step(f"Apply coupon {code}"):
             self._open_discount_form()
             self.coupon_field.fill(code)
-            self.apply_button.click()
-            self.page.wait_for_load_state()
-            wait_for_luma(self.page)
+            submit(self.page, self.apply_button)
             expect(self.order_total).to_be_visible()
         return self
 
     def cancel_coupon(self) -> "CartPage":
         with allure.step("Cancel the coupon"):
             self._open_discount_form()
-            self.cancel_button.click()
-            self.page.wait_for_load_state()
-            wait_for_luma(self.page)
+            submit(self.page, self.cancel_button)
             expect(self.order_total).to_be_visible()
         return self
 
@@ -290,9 +286,7 @@ class LoginPage(StorePage):
             self.password.fill(password)
             if captcha is not None:
                 self.captcha.fill(captcha)
-            self.sign_in_button.click()
-            self.page.wait_for_load_state()
-            wait_for_luma(self.page)
+            submit(self.page, self.sign_in_button)
 
 
 class AccountPage(StorePage):

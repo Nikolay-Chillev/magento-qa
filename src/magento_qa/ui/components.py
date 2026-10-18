@@ -27,6 +27,16 @@ def wait_for_luma(page: Page) -> None:
     expect(page.locator(LOADERS).filter(visible=True)).to_have_count(0)
 
 
+def submit(page: Page, button: Locator) -> None:
+    """Click a button that submits a form, and wait for the page the server answers with."""
+    # The current page stays "loaded" until the server answers, so wait for the
+    # navigation itself, within the navigation timeout: under parallel load in CI a
+    # sign-in POST and its redirect took over 10 seconds, longer than an expect().
+    with page.expect_navigation():
+        button.click()
+    wait_for_luma(page)
+
+
 class MiniCart:
     def __init__(self, page: Page) -> None:
         self.page = page
