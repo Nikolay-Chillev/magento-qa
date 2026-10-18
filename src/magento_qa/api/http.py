@@ -8,6 +8,23 @@ from urllib.parse import urljoin
 
 import allure
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
+
+# A server may close an idle keep-alive connection just as the client reuses it; the
+# request then fails with "Remote end closed connection without response" (seen with
+# Mailpit in CI). Requests that are safe to repeat are retried when the connection
+# drops. Error statuses are not retried, and nothing that could change state twice is.
+RETRY_DROPPED_CONNECTIONS = Retry(
+    total=2,
+    connect=2,
+    read=2,
+    status=0,
+    other=0,
+    allowed_methods=frozenset({"GET", "HEAD"}),
+    backoff_factor=0.1,
+    raise_on_status=False,
+)
 
 MASK = "***"
 SENSITIVE_HEADERS = frozenset({"authorization", "cookie", "set-cookie"})
@@ -25,6 +42,9 @@ class HttpClient:
         self.base_url = base_url if base_url.endswith("/") else f"{base_url}/"
         self.timeout = timeout
         self.session = requests.Session()
+        adapter = HTTPAdapter(max_retries=RETRY_DROPPED_CONNECTIONS)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
 
     def fresh(self) -> "HttpClient":
         """A client for the same base URL with its own, empty cookie jar."""
