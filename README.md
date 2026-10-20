@@ -10,6 +10,25 @@ Test automation for a Magento 2 e-commerce store, built the way a retail QA team
 
 Magento (Adobe Commerce Open Source) powers many large European online shops, so the scenarios here mirror real retail flows: catalog, cart, checkout, customer accounts and order emails.
 
+## What is covered
+
+| Level | Tests | What they check |
+|---|---|---|
+| API | 135 | REST and GraphQL: guest and customer checkout, cart and variants, coupons and promotions, Bulgarian addresses and VAT, accounts, password rules and reset, brute-force protection, access between customers, catalog search |
+| UI | 40 | Playwright: guest checkout, coupons, registration and sign-in, CAPTCHA, password reset, other customers' data, search, filters and sorting, a phone-sized screen; nightly also in Firefox and WebKit |
+| Email | 10 | Order confirmations, welcome and password reset emails, read from Mailpit (part of the API and UI tests) |
+| Accessibility | 8 | axe-core (WCAG 2.1 A and AA) on key pages, against a baseline of known violations |
+| Performance | 7 requests | k6 smoke of a shopper's path every night, with limits on the 95th percentile |
+| Framework | 46 | Unit tests of the suite's own code |
+
+Every pull request that changes code runs the suite against a fresh store (documentation-only changes skip it); every night it runs in three browsers with the performance smoke, and the [Allure report](https://nikolay-chillev.github.io/magento-qa/) is published with its history. v1.0 was released after ten nightly runs in a row without a failure.
+
+## What was found
+
+The [findings log](docs/findings.md) holds 19 findings: 10 in Magento itself, the rest in the Docker image, the store's configuration and the sample data. Four were reported to Magento ([#41429](https://github.com/magento/magento2/issues/41429), [#41431](https://github.com/magento/magento2/issues/41431), [#41461](https://github.com/magento/magento2/issues/41461), [#41512](https://github.com/magento/magento2/issues/41512)) and one case was added to an existing report ([#37886](https://github.com/magento/magento2/issues/37886)); Adobe confirmed the accessibility report, and other contributors have proposed fixes for three of them.
+
+Out of scope: the admin panel UI, real payment providers, Magento's own unit and integration tests, and load testing ([test strategy](docs/test-strategy.md)).
+
 ## Environment
 
 | Service | Image | URL |
@@ -101,6 +120,7 @@ Commands go through `python -m` so they also work where Windows Smart App Contro
 - [x] Nightly run: full suite, UI tests in Chromium, Firefox and WebKit
 - [x] Accessibility: axe-core scans of key pages against a baseline of known violations
 - [x] Performance smoke (k6), nightly
+- [x] v1.0: ten nightly runs in a row without a failure, findings reviewed
 
 Possible next steps:
 

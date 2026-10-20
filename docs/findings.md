@@ -2,6 +2,8 @@
 
 Defects and risks found while testing the store and its environment. Each finding is a GitHub issue labelled [`finding`](https://github.com/Nikolay-Chillev/magento-qa/issues?q=label%3Afinding) with steps to reproduce; this page is the summary.
 
+At v1.0 (20 October 2026) the log holds 19 findings: 10 in Magento itself, 5 in the Docker image (one of them also a Magento bug, since fixed upstream), 3 in the store's configuration and 1 in the sample data. Four were reported to Magento and one case was added to an existing report; Adobe confirmed one of the reports, and other contributors have proposed fixes for three. Upstream statuses below are as of that date.
+
 **Source** separates what Magento itself does (*product*) from how this Docker image is configured (*environment*), from how the store is set up (*configuration*) and from the sample catalog (*test data*). Environment findings would be configuration tickets on a real project, not Magento bugs, but they are exactly what a pre-production review should catch.
 
 | # | Finding | Severity | Source | Status |
@@ -13,16 +15,16 @@ Defects and risks found while testing the store and its environment. Each findin
 | [#18](https://github.com/Nikolay-Chillev/magento-qa/issues/18) | Elasticsearch crashes on the first start of a fresh container | Minor | Environment | Fixed upstream |
 | [#19](https://github.com/Nikolay-Chillev/magento-qa/issues/19) | Missing oblast is only rejected when the order is placed | Minor | Product | Open, covered by a test |
 | [#20](https://github.com/Nikolay-Chillev/magento-qa/issues/20) | Product names in API responses contain HTML entities | Minor | Test data | Open |
-| [#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) | REST cart API turns zero and negative quantities into 1 | Major | Product | Open, reported as [magento/magento2#41429](https://github.com/magento/magento2/issues/41429) |
-| [#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34) | Free-shipping promotion is applied but Flat Rate still charges shipping | Major | Product | Open, reported as [magento/magento2#41431](https://github.com/magento/magento2/issues/41431) |
+| [#29](https://github.com/Nikolay-Chillev/magento-qa/issues/29) | REST cart API turns zero and negative quantities into 1 | Major | Product | Open, reported as [magento/magento2#41429](https://github.com/magento/magento2/issues/41429); a fix by another contributor is ready for testing ([#41430](https://github.com/magento/magento2/pull/41430)) |
+| [#34](https://github.com/Nikolay-Chillev/magento-qa/issues/34) | Free-shipping promotion is applied but Flat Rate still charges shipping | Major | Product | Open, reported as [magento/magento2#41431](https://github.com/magento/magento2/issues/41431); a fix by another contributor is proposed ([#41467](https://github.com/magento/magento2/pull/41467)) |
 | [#35](https://github.com/Nikolay-Chillev/magento-qa/issues/35) | "Buy 3 tees, get the 4th free" gives away any product, not only tees | Major | Configuration | Open, covered by an `xfail` test |
 | [#39](https://github.com/Nikolay-Chillev/magento-qa/issues/39) | Five products have no tax class and are sold without VAT | Major | Configuration | Open, covered by an `xfail` audit |
-| [#53](https://github.com/Nikolay-Chillev/magento-qa/issues/53) | Signing in before the page finishes loading leaves the header showing a guest | Minor | Product | Open, reported as [magento/magento2#41461](https://github.com/magento/magento2/issues/41461) |
+| [#53](https://github.com/Nikolay-Chillev/magento-qa/issues/53) | Signing in before the page finishes loading leaves the header showing a guest | Minor | Product | Open, reported as [magento/magento2#41461](https://github.com/magento/magento2/issues/41461), awaiting confirmation |
 | [#57](https://github.com/Nikolay-Chillev/magento-qa/issues/57) | Password reset requests reveal which emails have an account | Minor | Product | Open, known upstream as [magento/magento2#37886](https://github.com/magento/magento2/issues/37886); the REST case [added there](https://github.com/magento/magento2/issues/37886#issuecomment-6095909420). Covered by an `xfail` test |
 | [#58](https://github.com/Nikolay-Chillev/magento-qa/issues/58) | API tokens stay valid after a password reset | Major | Product | Open, covered by an `xfail` test |
 | [#59](https://github.com/Nikolay-Chillev/magento-qa/issues/59) | A browser signed in before a password reset gets an error page | Minor | Product | Open, known upstream as [magento/magento2#41439](https://github.com/magento/magento2/issues/41439), covered by an `xfail` test |
 | [#65](https://github.com/Nikolay-Chillev/magento-qa/issues/65) | GraphQL calls with a token also sign in a cookie session | Minor | Configuration | Open |
-| [#75](https://github.com/Nikolay-Chillev/magento-qa/issues/75) | The main menu is hidden from screen readers | Major | Product | Open, reported as [magento/magento2#41512](https://github.com/magento/magento2/issues/41512), in the accessibility baseline |
+| [#75](https://github.com/Nikolay-Chillev/magento-qa/issues/75) | The main menu is hidden from screen readers | Major | Product | Open, reported as [magento/magento2#41512](https://github.com/magento/magento2/issues/41512) and confirmed by Adobe (P2); a fix by another contributor is proposed ([#41549](https://github.com/magento/magento2/pull/41549)). In the accessibility baseline |
 | [#76](https://github.com/Nikolay-Chillev/magento-qa/issues/76) | Error messages fail the WCAG contrast minimum | Minor | Product | Open, in the accessibility baseline |
 | [#77](https://github.com/Nikolay-Chillev/magento-qa/issues/77) | Invalid ARIA structure on product tabs, checkout steps and the CAPTCHA field | Minor | Product | Open, in the accessibility baseline |
 

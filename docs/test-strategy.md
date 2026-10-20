@@ -99,6 +99,11 @@ A pull request is merged when:
 
 v1.0 is released when the P1 and P2 risks above have API coverage, P1 journeys have UI coverage, and ten consecutive nightly runs pass without a flaky test.
 
+**Checked for v1.0 on 20 October 2026:**
+- Every P1 and P2 risk in the table has API tests (135 API tests in all, REST and GraphQL).
+- The P1 journeys run in the browser: guest checkout with a Bulgarian address, registration, sign-in and sign-out (40 UI tests in Chromium; all but the eight accessibility scans also run in Firefox and WebKit every night).
+- The nightly runs from 11 to 20 October passed ten times in a row; CI does not retry failed tests, so a green run means no test failed even once. Runs on pull requests in the same week found two causes of flaky failures, a dropped keep-alive connection to Mailpit ([#87](https://github.com/Nikolay-Chillev/magento-qa/pull/87)) and a sign-in that took longer than an assertion's timeout under load ([#88](https://github.com/Nikolay-Chillev/magento-qa/pull/88)); both were fixed before the last two nightly runs.
+
 ## Reporting
 
 - **[Allure report](https://nikolay-chillev.github.io/magento-qa/)** published after every push to `main`, with trends across runs; every CI run also keeps its raw results for 14 days
