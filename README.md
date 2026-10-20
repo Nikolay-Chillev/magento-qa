@@ -21,7 +21,7 @@ Magento (Adobe Commerce Open Source) powers many large European online shops, so
 | Performance | 7 requests | k6 smoke of a shopper's path every night, with limits on the 95th percentile |
 | Framework | 46 | Unit tests of the suite's own code |
 
-Every pull request runs the suite against a fresh store; every night it runs in three browsers with the performance smoke, and the [Allure report](https://nikolay-chillev.github.io/magento-qa/) is published with its history. v1.0 was released after ten nightly runs in a row without a failure.
+Every pull request that changes code runs the suite against a fresh store (documentation-only changes skip it); every night it runs in three browsers with the performance smoke, and the [Allure report](https://nikolay-chillev.github.io/magento-qa/) is published with its history. v1.0 was released after ten nightly runs in a row without a failure.
 
 ## What was found
 
