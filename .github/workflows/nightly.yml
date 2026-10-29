@@ -52,10 +52,13 @@ jobs:
         run: uv run playwright install --with-deps ${{ matrix.browser }}
 
       # Three workers: the store's PHP-FPM pool serves four requests at a time.
+      # A failed UI test keeps a screenshot and a trace, so a night that fails once can
+      # still be explained.
       - name: Run tests
         run: >-
           uv run pytest -n 3 ${{ matrix.tests }} --browser ${{ matrix.browser }}
           --alluredir=allure-results --junitxml=junit.xml
+          --screenshot only-on-failure --tracing retain-on-failure --output test-results
 
       - name: Summarise the results
         if: ${{ !cancelled() }}
@@ -67,6 +70,15 @@ jobs:
         with:
           name: allure-results-${{ matrix.browser }}
           path: allure-results
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload screenshots and traces
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-results-${{ matrix.browser }}
+          path: test-results
           retention-days: 14
           if-no-files-found: ignore
 
