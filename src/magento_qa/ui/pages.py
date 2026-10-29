@@ -369,11 +369,15 @@ class ProductListPage(StorePage):
             title = section.get_by_role("tab")
             if title.get_attribute("aria-expanded") != "true":
                 title.click()
+            # The section slides open; a click while it is still opening can be lost, and
+            # then no new page comes (seen once in Firefox, right after another filter).
+            expect(title).to_have_attribute("aria-expanded", "true")
             swatch = section.locator(f"[data-option-label='{option}']")
             # Swatches (size, colour) are pictures inside the links; other filters are text links.
             target = (
                 swatch if swatch.count() else section.get_by_role("link").filter(has_text=option)
             )
+            expect(target).to_be_visible()
             self._reload_by(target.click)
         return self
 
