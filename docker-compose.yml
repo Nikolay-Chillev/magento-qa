@@ -1,7 +1,7 @@
 services:
   magento:
     # Tag for readability, digest so every run uses exactly the same image.
-    image: ghcr.io/controlaltdelete-nl/magento2-in-a-box/magento-project-community-edition:php84-fpm-magento2.4.9-sample-data@sha256:a4d368897f4798d591aa1efeea09f42da8e9b76c553da92365c8c46525898b2e
+    image: ghcr.io/controlaltdelete-nl/magento2-in-a-box/magento-project-community-edition:php84-fpm-magento2.4.9-sample-data@sha256:c0265303c1f3cb9e13af8b2725d1b45d7666b2d31a765ac5b1de7aa63ff99acf
     container_name: magento
     ports:
       - "8080:80"
