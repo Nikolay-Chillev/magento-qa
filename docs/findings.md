@@ -84,6 +84,12 @@ With the 20% Bulgarian VAT rule in place, a Radiant Tee is charged €4.40 VAT o
 
 A customer who sends the sign-in form before the page's scripts have loaded is signed in, but the header keeps "Default welcome msg!" and an empty mini-cart on every page, even when their cart has items. **Root cause:** Luma refreshes the customer data only when its script sees the form being submitted (`customer-data.js` marks the affected sections as stale in the `section_data_ids` cookie). Without that mark, the next page finds nothing to reload, and the data never expires on its own. Reproduced 12 out of 12 times when the form is sent right after `DOMContentLoaded`. In production mode the window is shorter, but a password manager filling the form on a slow mobile connection can still hit it. The UI tests wait for Luma's scripts before they interact with a page; before that, the sign-in tests failed intermittently with three parallel workers. Reported upstream with a suggested fix: set the `section_data_clean` cookie on a successful sign-in, as the store switcher already does.
 
+Reproduced again on 2026-11-05 with the image of 2.4.9 then in use, with the request for `customer-data.js` blocked during the sign-in, as in the steps of the report ([screencast](images/finding-53-steps.webm)):
+
+| Signed in before the scripts loaded | Signed in after the page had loaded |
+|---|---|
+| ![The cart lists 2 Joust Duffle Bags, but the header says "Default welcome msg!" and the mini-cart is empty](images/finding-53-cart-with-guest-header.png) | ![The header says "Welcome, Даниел Христов!" and the mini-cart shows 2](images/finding-53-normal-sign-in-header.png) |
+
 ### #57 Password reset requests reveal which emails have an account
 
 `PUT /V1/customers/password` answers `200 true` for a registered email and `404 No such entity with email = …` for an unknown one; the GraphQL mutation `requestPasswordResetEmail` answers `true` or "Cannot reset the customer's password". Magento hides account existence everywhere else (one message for every failed sign-in, `isEmailAvailable` always `true` by default, a neutral message on the "Forgot Your Password?" form), so these two endpoints are the gap that lets anyone check a list of emails for accounts. The GraphQL side is reported upstream as a feature request; the REST case, which has the same cause, is added to that report.
